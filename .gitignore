@@ -1,1 +1,3 @@
-.vent/
+# git ignore for Python virtual environment
+# NOTE: please install the .venv via instructions on canvas
+.venv/
