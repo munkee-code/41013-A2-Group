@@ -38,7 +38,7 @@
                 <technique sid="common">
                     <blinn>
                         <diffuse>
-                            <texture texture="texture0-sampler" texcoord="UVSET0"/>
+                            <color sid="diffuse">0.2 0.3 0.8 1.0</color>
                         </diffuse>
                     </blinn>
                 </technique>

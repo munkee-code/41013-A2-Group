@@ -23,7 +23,7 @@ try:
         filename=str(MODEL_PATH),
         pose=SE3.Rx(90, unit="deg"),
         scale=[1, 1, 1],
-        color=[0.2, 0.3, 0.6, 1.0]
+        color=[0.2, 0.3, 0.8, 1.0]
     )
 
     env.add(car)
