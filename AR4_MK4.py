@@ -101,12 +101,14 @@ Select visualisation mode:
 - 3: Robotics toolbox teach window
 """
 if __name__ == "__main__":
-    mode = 1
+    #mode = "swift"
+    #mode = "3Dplot"
+    mode = "teach"
 
     robot = AR4_MK4()
     robot.q = np.zeros(6)
 
-    if mode == 1:
+    if mode == "swift":
         env = swift.Swift()
         env.launch(realtime=True)
         robot_visual = CylindricalDHRobotPlot(
@@ -119,13 +121,13 @@ if __name__ == "__main__":
         print(robot)
         robot.test()
         env.hold()
-    elif mode == 2:
+    elif mode == "3Dplot":
         robot.plot(
             robot.q,
             backend="pyplot",
             block=True
         )
-    elif mode == 3:
+    elif mode == "teach":
         robot.teach(
             robot.q,
             backend="pyplot",
