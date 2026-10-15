@@ -5,7 +5,9 @@ from ir_support import CylindricalDHRobotPlot
 import numpy as np
 
 """
-AR4-MK4 6-DOF Robot Model
+AR4-MK5 6-DOF Robot Model
+
+NOTE: This model is replacing MK4 due to mesh files being unavailable.
 
 Using Denavit-Hartenberg convention (DH Parameters)
 
@@ -17,7 +19,7 @@ J2       -pi/2           0           0.30500      0         -42 to +90
 J3       pi              0           0            pi/2      -89 to +52
 J4       0               0.22263     0           -pi/2      -165 to +165
 J5       0               0           0            pi/2      -105 to +105
-J6       0               0.04100     0            0         -155 to +155
+J6       0               0.03630     0            0         -155 to +155
 
 NOTE: all values obtained from the manufacturer specifications at the official AR4-MK4 datasheet.
 
@@ -26,13 +28,13 @@ Link: https://anninrobotics.com/downloads/
 Excel spreadsheet containing the DH parameters and joint limits can be found within the folder.
 """
 
-class AR4_MK4(rtb.DHRobot):
+class AR4_MK5(rtb.DHRobot):
     def __init__(self, base=None):
         links = self._create_DH()
 
         super().__init__(
             links = links,
-            name = "AR4-MK4",
+            name = "AR4-MK5",
             base = base,
         )
 
@@ -79,13 +81,13 @@ class AR4_MK4(rtb.DHRobot):
                 d=0, 
                 a=0, 
                 alpha=pi/2, 
-                offset=pi/2,
+                offset=0,
                 qlim=[-105 * pi/180, 105 * pi/180]
             ),
 
             # Joint 6
             rtb.RevoluteDH(
-                d=0.04100, 
+                d=0.03630, 
                 a=0, 
                 alpha=0, 
                 offset=0,
@@ -101,11 +103,11 @@ Select visualisation mode:
 - 3: Robotics toolbox teach window
 """
 if __name__ == "__main__":
-    #mode = "swift"
+    mode = "swift"
     #mode = "3Dplot"
-    mode = "teach"
+    #mode = "teach"
 
-    robot = AR4_MK4()
+    robot = AR4_MK5()
     robot.q = np.zeros(6)
 
     if mode == "swift":
