@@ -103,9 +103,9 @@ Select visualisation mode:
 - 3: Robotics toolbox teach window
 """
 if __name__ == "__main__":
-    mode = "swift"
+    #mode = "swift"
     #mode = "3Dplot"
-    #mode = "teach"
+    mode = "teach"
 
     robot = AR4_MK5()
     robot.q = np.zeros(6)

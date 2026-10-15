@@ -7,7 +7,7 @@ from spatialgeometry import Mesh
 from spatialmath import SE3
 from roboticstoolbox import jtraj
 
-from AR4_MK5 import AR4_MK5
+from AR4_MK5.AR4_MK5 import AR4_MK5
 
 
 # ==========================================
@@ -28,11 +28,29 @@ if not hasattr(Mesh, "_update_pyb"):
 # ==========================================
 
 robot = AR4_MK5()
-robot.q = np.zeros(6)
-
+robot.q = np.deg2rad([0, 0, -80, 0, 0, 0])
 robot.base = SE3()
 
 print(">> AR4-MK5 robot initialised")
+
+# ==========================================
+# CHECK DH JOINT AXES
+# ==========================================
+
+T = robot.base
+
+for i in range(6):
+
+    print(f"\nJoint {i+1}")
+
+    # Joint axis position
+    print("Axis position:", T.t)
+
+    # Joint axis direction
+    print("Axis direction:", T.R[:, 2])
+
+    # Move to the next DH frame
+    T = T * robot.links[i].A(robot.q[i])
 
 
 # ==========================================
@@ -151,14 +169,15 @@ mesh_offsets = [
 
 
 # ==========================================
+
+# ==========================================
 # 7. UPDATE MESH POSITIONS
 # ==========================================
 
-# Record the DH transformations at home
+# Save the DH home transformations
 q_home = np.zeros(6)
 
 home_transforms = []
-
 T = robot.base
 
 for i in range(6):
@@ -168,20 +187,33 @@ for i in range(6):
 
 def update_meshes():
 
-    # Base remains stationary
     base_mesh.T = robot.base.A
 
-    # Calculate current DH transformations
     T = robot.base
 
     for i in range(6):
 
         T = T * robot.links[i].A(robot.q[i])
 
-        # Move mesh relative to home position
-        link_meshes[i].T = (
-            T * home_transforms[i].inv()
-        ).A
+        if i >= 3:
+            # TEMPORARY TEST:
+            # Keep wrist meshes in their exported
+            # positions except for Joint 4 rotation.
+            pivot = SE3(0.065, 0, 0.475)
+
+            rotation = (
+                pivot
+                * SE3.Rz(robot.q[3])
+                * pivot.inv()
+            )
+
+            link_meshes[i].T = rotation.A
+
+        else:
+            # Keep existing DH animation for J1-J3
+            link_meshes[i].T = (
+                T * home_transforms[i].inv()
+            ).A
 
 
 # ==========================================
@@ -220,34 +252,26 @@ def move_robot(q_target, steps=100):
 
 
 # ==========================================
-# 10. TEST ALL SIX JOINTS
+# 10. TEST JOINT 4
 # ==========================================
+print(">> Testing Joint 4")
 
-q_home = np.zeros(6)
+q_target = robot.q.copy()
+q_target[3] = np.deg2rad(20)
 
-# Test angles in degrees
-test_angles = [45, 30, 20, 45, 30, 45]
+move_robot(q_target, steps=100)
 
-for i in range(6):
-
-    print(f">> Testing Joint {i+1}")
-
-    q_target = q_home.copy()
-
-    q_target[i] = np.deg2rad(test_angles[i])
-
-    # Move joint
-    move_robot(q_target)
-
-    # Return home before next joint
-    move_robot(q_home)
+print(">> Returning home")
+move_robot(np.zeros(6), steps=100)
 
 
 # ==========================================
-# 11. FINISH
+# 11. RETURN TO HOME
 # ==========================================
 
-print(">> All joint tests completed")
+print(">> Returning to home")
+
+move_robot(q_home, steps=100)
 
 
 # ==========================================
