@@ -29,6 +29,12 @@ def main():
 
 	#Add Assets to Env
 
+from AR4_MK4 import AR4_MK4
+
+def main():
+	env = swift.Swift()
+	env.launch(realtime=True)
+
 	trt_base = SE3.Trans(0, 0, 0)
 	mount_height = 0.13
 	heading_offset = pi/2
