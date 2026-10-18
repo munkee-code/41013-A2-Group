@@ -14,7 +14,7 @@ from spatialmath import SE3
 from spatialmath.base import *
 from math import pi
 from ir_support import CylindricalDHRobotPlot
-from AR4_MK4 import AR4_MK4
+from AR4_MK4.AR4_MK4 import AR4_MK4
 from ir_support_extra_parts import *
 
 ## Swift Simulation initialisation
