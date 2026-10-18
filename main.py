@@ -16,7 +16,7 @@ from ir_support_extra_parts import *
 
 ##Robots
 from AR4_MK4 import AR4_MK4
-from CRX_10iAL_Paint import CRXPaint
+from CRX_10iAL_Paint.CRX_10iAL_Paint import CRXPaint, MOVECRX, Test
 
 ##Functions
 
@@ -29,29 +29,45 @@ def main():
 
 	#Add Assets to Env
 
-	#Turtlebot
-	trt_base = SE3.Trans(0, 0, 0)
-	mount_height = 0.13
-	heading_offset = pi/2
-	trt = Turtlebot3Waffle()
-	trt.base = trt_base * SE3.Rz(heading_offset)
-	trt.add_to_env(env)
-
-	#AR4
-	AR4 = AR4_MK4()
-	AR4.q = np.zeros(6)
-	AR4.base = SE3.Trans(0, 0, mount_height)
-	AR4_vis = CylindricalDHRobotPlot(AR4, cylinder_radius=0.025)
-	AR4_vis.create_cylinders()
-	env.add(AR4)
-
 	#CRX
 	CRX = CRXPaint()
 	CRX.q = np.zeros(6)
-	CRX.base = SE3.Trans(0, 0, mount_height)
-	CRX_vis = CylindricalDHRobotPlot(AR4, cylinder_radius=0.025)
-	CRX_vis.create_cylinders()
-	env.add(CRX)
+	CRX.base = SE3.Trans(0, 0, 0)
+	#CRX_vis = CylindricalDHRobotPlot(CRX, cylinder_radius=0.025)
+	CRX.q = (0,0,0,0,0,0)
+	#CRX_vis.create_cylinders()
+	CRX.add_to_env(env)
+	#for angle in range(0,90,5):
+		#CRX.q = (0,0,angle,0,0,0)
+		#env.step(0.15)
+
+	CRXTest = Test()
+	CRXTest.q = (0,0,0,0,0,0)
+	CRXTest.base = SE3.Trans(0, 0, 0)
+	CRXTest_vis = CylindricalDHRobotPlot(CRXTest, cylinder_radius=0.1)
+	CRXTest_vis.create_cylinders()
+	env.add(CRXTest)
+	#env.hold()
+
+	MOVECRX((0.5 ,0.5 ,0.1 ,0 ,0 ,0 ),CRX,env)
+	#MOVECRX((0.5 ,0.5 ,0.1 ,0 ,0 ,0 ),CRXTest,env)
+
+	#Turtlebot
+	#trt_base = SE3.Trans(0, 0, 0)
+	#mount_height = 0.13
+	#heading_offset = pi/2
+	#trt = Turtlebot3Waffle()
+	#trt.base = trt_base * SE3.Rz(heading_offset)
+	#trt.add_to_env(env)
+
+	#AR4
+	#AR4 = AR4_MK4()
+	#AR4.q = np.zeros(6)
+	#AR4.base = SE3.Trans(0, 0, mount_height)
+	#AR4_vis = CylindricalDHRobotPlot(AR4, cylinder_radius=0.025)
+	#AR4_vis.create_cylinders()
+	#env.add(AR4)
+
 
 	env.step(0.05)
 	env.hold()
