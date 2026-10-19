@@ -13,6 +13,7 @@ from ir_support.robots import UR3e
 from ir_support_extra_robots.robots import Turtlebot3Waffle
 from ir_support import CylindricalDHRobotPlot
 from ir_support_extra_parts import *
+from AR4_MK4.AR4_MK4 import AR4_MK4
 
 ##Robots
 from AR4_MK4 import AR4_MK4
