@@ -50,7 +50,7 @@ def main():
 	#env.hold()
 
 	MOVECRX((0.5 ,0.5 ,0.1 ,0 ,0 ,0 ),CRX,env)
-	#MOVECRX((0.5 ,0.5 ,0.1 ,0 ,0 ,0 ),CRXTest,env)
+	MOVECRX((0.5 ,0.5 ,0.1 ,0.5 ,0.3 ,0 ),CRXTest,env)
 
 	#Turtlebot
 	#trt_base = SE3.Trans(0, 0, 0)
