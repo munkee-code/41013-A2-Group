@@ -3,7 +3,19 @@
 To run the main simulation, run `main.py`. 
 
 ### Design
-The main loop incorporates
+The main loop involves a state machine to handle each state of the simulation:
+
+#### State 0 (config / setup):
+
+State 1 handles all the configuration and setup for the simulation like spawning all assets into swift environment including:
+- Warehouse environment
+- Robot arms
+    - AR4 MK5
+    - Kawasaki ...(TODO)
+    - Fanuc ...(TODO)
+- Vehicle chassis
+- Wheel component
+- Fasteners
 
 ## Assets
 ### Car
