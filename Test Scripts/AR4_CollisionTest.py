@@ -7,7 +7,7 @@ from roboticstoolbox import jtraj
 from spatialmath import SE3
 from math import pi
 
-from AR4_MK5.AR4_MK5 import AR4_MK5
+from Robots.AR4_MK5.AR4_MK5 import AR4_MK5
 
 #---------------------------------------------------------------------------------------------------
 # ROBOT
