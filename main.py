@@ -14,7 +14,7 @@ from Robots.AR4_MK5.AR4_MK5 import AR4_MK5
 def main():
 	env = swift.Swift()
 	env.launch(realtime=True)
-
+	
 	state_system = 0
 	running = True
 	
@@ -99,13 +99,13 @@ def main():
 				state_system = 2
 			case 2:
 				print("\n=============================")
-				print(">> State :: 2 || ...")
+				print(">> State :: 2 || Fastening")
 				print("=============================\n")
 				input("Press Enter to proceed to the next state <3>")
 				state_system = 3
 			case 3:
 				print("\n=============================")
-				print(">> State :: 3 || ...")
+				print(">> State :: 3 || Spray Painting")
 				print("=============================\n")
 				input("Press Enter to proceed to the next state <4>")
 				state_system = 4
@@ -118,8 +118,6 @@ def main():
 			case _:
 				print(f">> Error := Unknown system state <{state_system}>, ensure state_system is set correctly")
 				running = False
-
-
 
 if __name__ == "__main__":
 	main()
