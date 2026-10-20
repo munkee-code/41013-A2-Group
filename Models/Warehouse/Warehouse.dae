@@ -23,7 +23,7 @@
             <init_from>texture_3.png</init_from>
         </image>
         <image id="texture4" name="texture4">
-            <init_from>notexture.png</init_from>
+            <init_from>texture_4.png</init_from>
         </image>
     </library_images>
     <library_materials>
