@@ -1,4 +1,18 @@
-# A2 Group Project | README 
+# A2 Group Project | README
+## Main
+To run the main simulation, run `main.py`. 
+
+### Design
+The main loop incorporates
+
+## Assets
+### Car
+
+### Environment
+
+### Safety Equipment
+
+
 ## Robots
 These implementations use the Robotics Toolbox for Python to model the robots' kinematics using standard Denavit-Hartenberg (DH) parameters. The robots are visualised and tested in the Swift simulator.
 
