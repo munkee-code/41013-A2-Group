@@ -7,11 +7,9 @@ from spatialgeometry import Cuboid, Mesh
 from spatialmath import SE3
 from spatialmath.base import *
 from math import pi
-from ir_support.robots import UR3e
-from ir_support_extra_robots.robots import Turtlebot3Waffle
 from ir_support import CylindricalDHRobotPlot
 from ir_support_extra_parts import *
-from AR4_MK5.AR4_MK5 import AR4_MK5
+from Robots.AR4_MK5.AR4_MK5 import AR4_MK5
 
 def main():
 	env = swift.Swift()
@@ -83,6 +81,13 @@ def main():
 					print(f">> {name.capitalize()} added to Swift", flush=True)
 				print(">> All assets have been spawned into the environment.\n")
 
+				print(">> Spawning Robots into the environment...")
+				robot_AR4 = AR4_MK5()
+				robot_AR4.q = np.zeros(robot_AR4.n)
+				robot_AR4.base = SE3.Trans(3.5, 7.2, 0.1) * SE3.Rz(-pi/2)
+				robot_AR4.add_to_env(env)
+				print(">> Robot AR4_MK5 added to the environment")
+				
 				input("Press Enter to proceed to the next state <1>")
 				state_system = 1
 			case 1:

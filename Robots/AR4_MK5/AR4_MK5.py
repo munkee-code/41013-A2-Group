@@ -53,10 +53,10 @@ class AR4_MK5(UTSMeshRobot):
         ]
 
         current_path = os.path.abspath(os.path.dirname(__file__))
-        print("Mesh directory:", current_path)
+        #print("Mesh directory:", current_path)
         for i in range(7):
             filepath = os.path.join(current_path, f"link{i}.stl")
-            print(f"Link {i}: {filepath} -> {os.path.isfile(filepath)}")
+            #print(f"Link {i}: {filepath} -> {os.path.isfile(filepath)}")
 
         super().__init__(
             links=links,
@@ -74,44 +74,16 @@ class AR4_MK5(UTSMeshRobot):
     ## @return List of RevoluteDH links based on the standard DH parameters
     def _create_DH(self):
         # a: link lengths along the x-axis of the previous frame
-        a = [
-            0.06420, 
-            0.30500, 
-            0, 
-            0, 
-            0, 
-            0
-        ]
+        a = [0.06420, 0.30500, 0, 0, 0, 0]
 
         # d: link offsets along the z-axis of the previous frame
-        d = [
-            0.16977, 
-            0, 
-            0, 
-            0.22263, 
-            0, 
-            0.03630
-        ]
+        d = [0.16977, 0, 0, 0.22263, 0, 0.03630]
 
         # alpha: link twists around the x-axis of the previous frame
-        alpha = [
-            -pi/2, 
-            0, 
-            pi/2, 
-            -pi/2, 
-            pi/2, 
-            0
-        ]
+        alpha = [-pi/2, 0, pi/2, -pi/2, pi/2, 0]
 
         # offset: joint angle offsets for each revolute joint
-        offset = [
-            0,
-            -pi/2,
-            pi,
-            0,
-            0,
-            0
-        ]
+        offset = [0,-pi/2,pi,0,0,0]
 
         # qlim: joint limits for each revolute joint
         qlim = [
