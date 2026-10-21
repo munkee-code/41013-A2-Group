@@ -109,3 +109,13 @@ def MOVECRX(GOAL,rob,env):
         rob.q = q
         env.step(0.05)
     return
+
+def CRXRMRC(GOAL,rob,env):
+    ik = rob.ikine_LM(GOAL,q0=rob.q)
+
+    #move = 
+
+
+
+
+    return
