@@ -1,11 +1,130 @@
-# A2 Group Project | README 
+# 41013 | A2 Group Project 
+## Overview
+This repository contains the development and simulation of an automated vehicle assembly line for the 41013 Industrial Robotics group assignment.
+
+The project uses multiple industrial robotic arms to simulate automotive manufacturing operations, including picking & place, fastening, and spray painting.
+
+The simulation is developed in Python using `ir_support` package.
+
+## Repository Structure
+```Text
+41013-A2-Group/
+│
+├── Models/
+│   ├── Warehouse/
+│   ├── Floor/
+│   ├── Conveyor/
+│   └── Chassis/
+│
+├── Robots/
+│   ├── AR4_MK5/
+│   └── ...
+│
+├── Test Scripts/
+│
+├── main.py
+├── README.md
+└── .gitignore
+```
+
+| Directory / File | Description |
+|---|---|
+| `main.py` | Main entry point for the complete assembly-line simulation |
+| `Models/` | Environmental assets and vehicle components used in Swift |
+| `Robots/` | Robot implementations, kinematic models, and robot-specific 3D meshes |
+| `Test Scripts/` | Standalone scripts for testing individual features and functionality |
+| `README.md` | Project documentation |
+| `.gitignore` | Specifies files and directories excluded from Git |
+
+**Note:** Robot-specific STL files should be stored alongside their respective robot implementations in `Robots/`, rather than in the general `Models/` directory.
+
+## Main Simulation
+### Running the Simulation
+To launch the main simulation, run the following command from the repository root:
+
+```text
+python main.py
+```
+
+Ensure the required Python dependencies are installed before running the simulation (refer to Canvas).
+
+### Design
+The main simulation uses a state machine to organise the different stages of the assembly process.
+
+Each state is responsible for a particular operation, allowing the simulation to progress through environment setup, robot initialisation and automated assembly tasks.
+
+#### STATE | 0 := Configuration & Setup
+Initialises the simulation environment and loads the required assets into swift.
+
+Assets include:
+- Warehouse environment
+- Factory floor
+- Conveyor system
+- Vehicle chassis
+- Robot arms
+    - AR4-MK5
+    - Kawasaki ...
+    - FANUC ...
+- Vehicle components, fasteners, and other assembly items
+
+Asset paths and mesh objects are managed using Python dictionaries to simplify loading and accessing objects throughout the simulation.
+
+#### STATE | 1 := Pick & Place
+TODO
+
+#### STATE | 2 := Fastening
+TODO
+
+#### STATE | 3 := Spray Painting
+TODO
+
+## Models
+The `Models/` directory contains 3D assets used to construct the Swift simulation environment.
+
+These assets are seperate from the robot implementations and generally represent static environmental geometry or objects manipulated during the assembly process.
+
+Assets may use formats such as `.stl` and / or `.dae`, depending on their requirements and compatability with Swift.
+
+### Car & Vehicle Components
+Contains the vehicle components used during assembly.
+
+Examples include:
+- Vehicle chassis
+- Wheel(s)
+- Fasteners
+
+Components that need to move independently should maintain as separate mesh objects.
+
+### Environment
+Contains the models used to construct the 'warehouse' environment.
+
+Current assets include:
+
+| Directory | Description |
+|---|---|
+| `Warehouse/` | Main warehouse structure and surrounding factory environment |
+| `Floor/` | Factory flooring |
+| `Conveyor/` | Conveyor equipment used to transport components |
+| `Chassis/` | Vehicle chassis used in the assembly simulation |
+
+### Safety Equipment
+TODO
+
 ## Robots
-These implementations use the Robotics Toolbox for Python to model the robots' kinematics using standard Denavit-Hartenberg (DH) parameters. The robots are visualised and tested in the Swift simulator.
+The `Robots/` directory contains the implementations of the industrial robotic arms used in the simulation.
+
+Each robot should have its own subdirectory containing:
+- Python robot implementation
+- Kinematic parameters and joint limits 
+- Robot-specific 3D meshes 
+- Supporting files and documentation
+
+Custom robot implementations use the Robotic Toolbox for Python to model robot kinematics using Denavit-Hartenberg parameters. The robots are visualised and tested in the Swift simulator.
 
 ### AR4-MK5
 #### Overview
 
-<img src="AR4_MK5/ref_image.jfif" alt="AR4-MK5 Robot" width="250" align="right">
+<img src="Robots\AR4_MK5\ref_image.jfif" alt="AR4-MK5 Robot" width="250" align="right">
 
 The **AR4-MK5** is a six-degree-of-freedom (6-DOF) robotic arm developed by [Annin Robotics](https://anninrobotics.com/).
 
@@ -82,4 +201,9 @@ The simulation launches in Swift and tests the movement of all six joints indivi
 - [Swift Simulator](https://github.com/jhavl/swift)
 
 <!-- Reference image of AR4-MK5-->
-![AR4 MK5 image](AR4_MK5/ref_image.jfif)
+![AR4 MK5 image](Robots\AR4_MK5\ref_image.jfif)
+
+## Test Scripts
+The `Test Scripts/` directory contains standalone Python scripts used to develop, test, and validate individual components of the project. 
+
+These scripts are separate from the main simulation and may be used to experiment with functionality before integrating it into main.py.
