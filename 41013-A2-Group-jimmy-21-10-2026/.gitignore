@@ -1,0 +1,7 @@
+# git ignore for Python virtual environment
+# NOTE: please install the .venv via instructions on canvas
+.venv/
+
+# git ignore for test directories (not required for final submission)
+.Test/
+.Test/**
