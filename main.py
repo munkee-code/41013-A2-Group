@@ -10,6 +10,8 @@ from math import pi
 from ir_support import CylindricalDHRobotPlot
 from ir_support_extra_parts import *
 from Robots.AR4_MK5.AR4_MK5 import AR4_MK5
+from Robots.RS003N.RS003Nv4 import RS003N
+from Robots.RS003N.fastening import RS003NScrewing
 from robot_utils import move_robot
 
 def main():
@@ -100,6 +102,12 @@ def main():
 				robot_AR4.add_to_env(env)
 				print(">> Robot AR4_MK5 added to the environment")
 
+				RS003 = RS003N()
+				RS003.q = RS003._qtest
+				RS003.base = SE3.Trans(3.5, 4.9, 0.15) * SE3.Rz(pi/2)
+				RS003.add_to_env(env)
+				RS003qHome = np.array(RS003.q, dtype=float)
+
 				
 				input("Press Enter to proceed to the next state <1>")
 				state_system = 1
@@ -182,6 +190,19 @@ def main():
 				else:
 					print(">> Direct placement failed")
 
+				# Move the assembled car beside the fastening robot.
+				car_parts = ["chassis", "wheel_FL"]
+				shift = RS003.base.t - robot_AR4.base.t
+				T_shift = SE3.Trans(0, shift[1], 0)
+				for name in car_parts:
+					meshes[name].T = (T_shift * SE3(meshes[name].T)).A
+				env.step(0.5)
+				print(f">> Car moved next to RS003N (shift = {np.round(shift, 3)})")
+
+				camera_target = RS003.base.t + np.array([0, 0, 0.35])
+				camera_position = RS003.base.t + np.array([1.2, 1.0, 1.2])
+				env.set_camera_pose(camera_position, camera_target)
+
 				# ===   END CODE STATE 1   ===
 
 				input("Press Enter to proceed to the next state <2>")
@@ -190,10 +211,15 @@ def main():
 				print("\n=============================")
 				print(">> State :: 2 || Fastening")
 				print("=============================\n")
-				input("Press Enter to proceed to the next state <3>")
 
 				# v   v   v   IMPLEMENT CODE HERE   v   v   v
 
+				fastening = RS003NScrewing(env, RS003)
+				fastening.run()
+
+				# ===   END CODE STATE 2   ===
+
+				input("Press Enter to proceed to the next state <3>")
 				state_system = 3
 			case 3:
 				print("\n=============================")
