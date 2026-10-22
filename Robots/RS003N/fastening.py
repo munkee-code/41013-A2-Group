@@ -1,21 +1,3 @@
-"""
-fastening.py - RS003N pick -> carry -> slide in -> screw routine (State 2).
-Location: Robots/RS003N/fastening.py
-
-Motion and task logic only. The GUI (buttons, sliders, e-stop) lives in
-GUI.py and the parts are spawned in main.py.
-
-All positions/orientations here are in the RS003N's BASE frame and are
-converted to world coordinates with robot.base.
-
-Usage (in main.py):
-    from Robots.RS003N.GUI import RobotGui
-    from Robots.RS003N.fastening import RS003NScrewing
-
-    gui = RobotGui(env, {"RS003N": RS003, "AR4_MK5": robot_AR4})   # state 0
-    fastening = RS003NScrewing(env, RS003, gui, [shotglass])       # state 2
-    fastening.run()
-"""
 import numpy as np
 import roboticstoolbox as rtb
 from spatialmath import SE3
@@ -52,13 +34,6 @@ DEST_ROT = SE3.Rx(-np.pi / 2)
 
 class RS003NScrewing:
     def __init__(self, env, robot, gui, parts, destinations=None):
-        """
-        env          : swift.Swift environment
-        robot        : the RS003N (base already set)
-        gui          : RobotGui (from GUI.py)
-        parts        : list of meshes to pick and screw in (spawned in main.py)
-        destinations : list of base-frame positions (defaults to DESTINATIONS)
-        """
         self.env = env
         self.robot = robot
         self.gui = gui
