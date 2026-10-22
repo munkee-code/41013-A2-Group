@@ -17,7 +17,7 @@ from robot_utils import move_robot
 
 ##Robots
 #from AR4_MK4 import AR4_MK4
-from CRX_10iAL_Paint.CRX_10iAL_Paint import CRXPaint, MOVECRX, Test
+from CRX_10iAL_Paint.CRX_10iAL_Paint import CRXPaint, MOVECRX, Test, CRXRMRC
 
 ##Functions
 
@@ -119,6 +119,7 @@ def main():
 				print(">> State :: 1 || Pick & Place")
 				print("=============================\n")
 
+
 				# v   v   v   IMPLEMENT CODE HERE   v   v   v
 				
 				# dictionary to store target poses for components
@@ -170,10 +171,28 @@ def main():
 
 				# v   v   v   IMPLEMENT CODE HERE   v   v   v
 				CRX = CRXPaint()
-				CRX.q = np.zeros(6)
-				CRX.base = SE3.Trans(-1,0.5,0.1)
+				CRX.q = (pi,0,0,0,0,0)
+				CRX.base = SE3.Trans(3.5,1.,0.)
 				CRX.add_to_env(env)
+
+				Tpose1 = SE3.Trans(3.1,1.5,0.4) * SE3.RPY(0,-pi/2,0, order='xyz')
+
+				move_robot(CRX,target_pose=Tpose1,env=env)
+
+				G1 = (3.0,1.5,0.8,0,-pi/2,0)
+				CRXRMRC(G1,CRX,env,steps=100)
+
+				G2 = (3.0,2.0,0.8,0,-pi/2,0)
+				CRXRMRC(G2,CRX,env,steps=100)
+
+				G3 = (3.0,2.0,0.4,0,-pi/2,0)
+				CRXRMRC(G3,CRX,env,steps=100)
+
+				G4 = (3.0,1.5,0.4,0,-pi/2,0)
+				CRXRMRC(G4,CRX,env,steps=100)
 				
+				Tpose2 = SE3.Trans(3.5,1.5,0.8) * SE3.RPY(0,0,0, order='xyz')
+				move_robot(CRX,target_pose=Tpose2,env=env)
 
 				input("Press Enter to proceed to the next state <4>")
 				state_system = 4

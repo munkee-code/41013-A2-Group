@@ -5,12 +5,14 @@
 import swift
 import os
 from math import pi
+import numpy as np
 import roboticstoolbox as rtb
+from roboticstoolbox import trapezoidal
 from ir_support import CylindricalDHRobotPlot
 import spatialmath.base as spb
 from ir_support.robots.UTSMeshRobot import UTSMeshRobot
-from spatialmath import SE3
-
+from spatialmath import SE3, SO3
+from scipy import linalg
 
 
 class CRXPaint(UTSMeshRobot):
@@ -96,12 +98,95 @@ def MOVECRX(GOAL,rob,env):
         env.step(0.05)
     return
 
-def CRXRMRC(GOAL,rob,env):
-    ik = rob.ikine_LM(GOAL,q0=rob.q)
+def CRXRMRC(GOAL, rob, env, steps):
 
-    #move = 
+    incriment = 0.05
+    max_qdot = 0.25
+    damping = 0.05
+    Kp = 1.0
 
+    # Starting and goal poses
+    Start = rob.fkine(rob.q)
 
+    End = (
+        SE3.Trans(*GOAL[:3])
+        * SE3.RPY(GOAL[3:6], order='xyz')
+    )
 
+    # Trajectory progress
+    Traj = trapezoidal(0, 1, steps).q
 
-    return
+    q_matrix = np.zeros((steps, 6))
+    q_matrix[0, :] = np.array(rob.q, dtype=float)
+
+    # Translation endpoints
+    Tstart = Start.t
+    Tend = End.t
+
+    # Orientation endpoints
+    Rstart = SO3(Start.R)
+    Rend = SO3(End.R)
+
+    for i in range(steps - 1):
+
+        # Trajectory progress at current and next timestep
+        s_now = Traj[i]
+        s_next = Traj[i + 1]
+
+        # Desired positions
+        T_now = (1 - s_now) * Tstart + s_now * Tend
+        T_next = (1 - s_next) * Tstart + s_next * Tend
+
+        # Desired orientations at consecutive timesteps
+        R_now = Rstart.interp(Rend, s_now)
+        R_next = Rstart.interp(Rend, s_next)
+
+        # Actual end-effector pose
+        T_current = rob.fkine(q_matrix[i, :])
+
+        # Desired linear velocity
+        v_desired = (T_next - T_now) / incriment
+
+        # Desired angular velocity between consecutive orientations
+        R_change = R_next * R_now.inv()
+        theta, axis = R_change.angvec()
+        w_desired = axis * theta / incriment
+
+        # Position error: desired next position minus actual
+        e_position = T_next - T_current.t
+
+        # Orientation error: desired next orientation minus actual
+        R_error = R_next * SO3(T_current.R).inv()
+        theta_e, axis_e = R_error.angvec()
+        e_orientation = axis_e * theta_e
+
+        # Corrected Cartesian velocity
+        v_cmd = v_desired + Kp * e_position
+        w_cmd = w_desired + Kp * e_orientation
+
+        xdot = np.r_[v_cmd, w_cmd]
+
+        # Full 6x6 Jacobian
+        J = rob.jacob0(q_matrix[i, :])
+
+        # Damped least-squares inverse
+        q_dot = J.T @ np.linalg.solve(
+            J @ J.T + damping**2 * np.eye(6),
+            xdot
+        )
+
+        # Limit joint velocities
+        q_dot = np.clip(
+            q_dot, -max_qdot, max_qdot
+        )
+
+        # Update joint angles
+        q_matrix[i + 1, :] = (
+            q_matrix[i, :]
+            + incriment * q_dot
+        )
+
+        rob.q = q_matrix[i + 1, :]
+        env.step(incriment)
+
+    return q_matrix
