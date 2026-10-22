@@ -16,12 +16,15 @@ from Robots.AR4_MK5.AR4_MK5 import AR4_MK5
 from Robots.RS003N.RS003Nv4 import RS003N
 from Robots.RS003N.fastening import RS003NScrewing
 from Robots.RS003N.GUI import RobotGui
+from Robots.CRX_10iAL_Paint.CRX_10iAL_Paint import CRXPaint, CRXRMRC
+import threading
+from Estop import Estop
 from robot_utils import move_robot
 def main():
 	#Start Swift Env
 	env = swift.Swift()
 	env.launch(realtime=True)
-	
+	PORT = 'COM3'
 	state_system = 0
 	running = True
 	
@@ -31,8 +34,14 @@ def main():
 
 				robot_AR4 = AR4_MK5()
 				RS003 = RS003N()
+				CRX = CRXPaint()
 				ur3e = UR3e()
 				gui = RobotGui(env, {"AR4_MK5": robot_AR4, "RS003N": RS003, "UR3e": ur3e})
+				estop_thread = threading.Thread(
+					target=lambda: Estop(Port=PORT, env=env,gui=gui),
+					daemon=True
+				)
+				estop_thread.start()
 				print("\n=============================")
 				print(">> State :: 0 || Spawn Assets")
 				print("=============================\n")
@@ -133,6 +142,10 @@ def main():
 				RS003.base = SE3.Trans(3.5, 4.9, 0.15) * SE3.Rz(pi/2)
 				RS003.add_to_env(env)
 				RS003qHome = np.array(RS003.q, dtype=float)
+
+				CRX.q = (pi/2,pi/8,-pi/8,0,0,0)
+				CRX.base = SE3.Trans(3.75,3.5,0.)
+				CRX.add_to_env(env)
 
 				#Spawns the UR3 on top of the table
 				ur3e.base = SE3.Trans(1.9, 1.55, 0.5)
@@ -271,6 +284,19 @@ def main():
 				else:
 					print(">> Fastening stopped early")
 
+				# Move the chassis, wheel and shotglass together, in world (x, y, z) metres
+				move_x = 0.0
+				move_y = -1.8
+				move_z = 0.0
+
+				for item in [meshes["chassis"], meshes["wheel_FL"], shotglass]:
+					T = item.T.copy()            # the item's current 4x4 pose
+					T[0, 3] += move_x            # position column: x
+					T[1, 3] += move_y            # y
+					T[2, 3] += move_z            # z
+					item.T = T                   # put it back
+				env.step(0.05)
+				print(f">> Car moved by (x, y, z) = ({move_x}, {move_y}, {move_z})")
 				# ===   END CODE STATE 2   ===
 
 				gui.waitForNext("Press 'Next state' in Swift to proceed to state <3>")
@@ -284,7 +310,26 @@ def main():
 				
 
 				# v   v   v   IMPLEMENT CODE HERE   v   v   v
+				#CRX.q = (pi,pi/8,-pi/8,0,0,0)
+				#CRX.base = SE3.Trans(3.75,3.5,0.)
+				Tpose1 = SE3.Trans(3.1,3.2,1.2) * SE3.RPY(0,-pi/2,0, order='xyz')
 
+				move_robot(CRX,target_pose=Tpose1,env=env,gui=gui)
+
+				G1 = (3.2,4.0,1.15,0,-pi/2,0)
+				CRXRMRC(G1,CRX,env,steps=100)
+
+				G2 = (3.2,4.0,0.5,0,-pi/2,0)
+				CRXRMRC(G2,CRX,env,steps=100)
+
+				G3 = (3.2,3.0,0.5,0,-pi/2,0)
+				CRXRMRC(G3,CRX,env,steps=100)
+
+				G4 = (3.2,3.0,0.7,0,-pi/2,0)
+				CRXRMRC(G4,CRX,env,steps=100)
+				
+				Tpose2 = SE3.Trans(3.65,3.0,0.7) * SE3.RPY(0,0,0, order='xyz')
+				move_robot(CRX,target_pose=Tpose2,env=env)
 
 				gui.waitForNext("Press 'Next state' in Swift to proceed to state <4>")
 				state_system = 4

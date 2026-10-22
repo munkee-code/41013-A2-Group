@@ -100,9 +100,16 @@ def MOVECRX(GOAL,rob,env):
 
 def CRXRMRC(GOAL, rob, env, steps):
 
+
     incriment = 0.05
+
+    #Max joint velocity
     max_qdot = 0.25
+
+    #Damping for dls
     damping = 0.05
+
+    
     Kp = 1.0
 
     # Starting and goal poses
