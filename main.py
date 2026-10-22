@@ -159,7 +159,7 @@ def main():
 
 					# WHEEL PLACEMENT: lift -> align -> place
 					# NOTE: using primitive RRT for collision detection
-					if (move_robot(robot_AR4, T_lift, env, steps=50, attached_mesh=wheel, grasp_transform=T_ee_wheel)):
+					if move_robot(robot_AR4, T_lift, env, steps=50, attached_mesh=wheel, grasp_transform=T_ee_wheel):
 						print(">> Wheel Lifted successfully")
 
 						if move_robot(robot_AR4, T_align, env, steps=50, attached_mesh=wheel, grasp_transform=T_ee_wheel):
@@ -172,7 +172,7 @@ def main():
 						else:
 							print(">> Wheel alignment failed")
 					else:
-						print(">> Wheel Lift failed")
+						print(">> Wheel lift failed")
 				else:
 					print(">> Wheel pickup failed")
 				
