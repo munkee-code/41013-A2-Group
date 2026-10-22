@@ -14,6 +14,7 @@ from Robots.RS003N.RS003Nv4 import RS003N
 from Robots.RS003N.fastening import RS003NScrewing
 from Robots.RS003N.GUI import RobotGui
 from robot_utils import move_robot
+from ir_support.robots import UR3e
 
 def main():
 	env = swift.Swift()
@@ -28,7 +29,8 @@ def main():
 
 				robot_AR4 = AR4_MK5()
 				RS003 = RS003N()
-				gui = RobotGui(env, {"AR4_MK5": robot_AR4, "RS003N": RS003})
+				ur3e = UR3e()
+				gui = RobotGui(env, {"AR4_MK5": robot_AR4, "RS003N": RS003, "UR3e": ur3e})
 				print("\n=============================")
 				print(">> State :: 0 || Spawn Assets")
 				print("=============================\n")
@@ -113,6 +115,11 @@ def main():
 				RS003.add_to_env(env)
 				RS003qHome = np.array(RS003.q, dtype=float)
 
+				#Spawns the UR3 on top of the table
+				ur3e.base = SE3.Trans(2.25, 1.55, 0.5)
+				ur3e.add_to_env(env)
+				qUR3Home = np.asarray(ur3e.q).copy()
+
 				shotglass_start = SE3.Trans(-0.3, -0.30, 0.05) * SE3.Ry(pi)
 				shotglass = part_mesh("ShotGlass", pose=RS003.base * shotglass_start)
 				env.add(shotglass)
@@ -151,7 +158,7 @@ def main():
 				T_tar_FL = comp_tar["FL"]
 
 				# WHEEL PICKUP: approach wheel -> contact wheel -> 'attach' wheel
-				if move_robot(robot_AR4, T_approach, env, gui=gui) and move_robot(robot_AR4, T_contact, env, steps=50, gui=gui):
+				if move_robot(robot_AR4, T_approach, env, gui=gui) and move_robot(robot_AR4, T_contact, env, steps=10, gui=gui):
 					print(">> Wheel pickup position reached")
 
 					# attach wheel to end-effector
@@ -170,13 +177,13 @@ def main():
 
 					# WHEEL PLACEMENT: lift -> align -> place
 					# NOTE: using primitive RRT for collision detection
-					if (move_robot(robot_AR4, T_lift, env, steps=50, attached_mesh=wheel, grasp_transform=T_ee_wheel, gui=gui)):
+					if (move_robot(robot_AR4, T_lift, env, steps=10, attached_mesh=wheel, grasp_transform=T_ee_wheel, gui=gui)):
 						print(">> Wheel Lifted successfully")
 
-						if move_robot(robot_AR4, T_align, env, steps=50, attached_mesh=wheel, grasp_transform=T_ee_wheel, gui=gui):
+						if move_robot(robot_AR4, T_align, env, steps=10, attached_mesh=wheel, grasp_transform=T_ee_wheel, gui=gui):
 							print(">> Wheel aligned successfully")
 
-							if move_robot(robot_AR4, T_place, env, steps=50, attached_mesh=wheel, grasp_transform=T_ee_wheel, gui=gui):
+							if move_robot(robot_AR4, T_place, env, steps=10, attached_mesh=wheel, grasp_transform=T_ee_wheel, gui=gui):
 								print(">> Wheel placed successfully")
 							else:
 								print(">> Wheel placement failed")
@@ -187,7 +194,11 @@ def main():
 				else:
 					print(">> Wheel pickup failed")
 				
-				# Move the assembled car beside the fastening robot.
+				camera_target = RS003.base.t + np.array([0, 0, 0.35])
+				camera_position = RS003.base.t + np.array([1.2, 1.0, 1.2])
+				env.set_camera_pose(camera_position, camera_target)
+
+								# Move the assembled car beside the fastening robot.
 				car_parts = ["chassis", "wheel_FL"]
 				shift = RS003.base.t - robot_AR4.base.t
 				T_shift = SE3.Trans(0, shift[1], 0)
@@ -196,9 +207,6 @@ def main():
 				env.step(0.5)
 				print(f">> Car moved next to RS003N (shift = {np.round(shift, 3)})")
 
-				camera_target = RS003.base.t + np.array([0, 0, 0.35])
-				camera_position = RS003.base.t + np.array([1.2, 1.0, 1.2])
-				env.set_camera_pose(camera_position, camera_target)
 				
 				# ===   END CODE STATE 1   ===
 
@@ -240,12 +248,32 @@ def main():
 				state_system = 4
 			case 4:
 				print("\n=============================")
-				print(">> State :: 4 || ...")
+				print(">> State :: 4 || Adhesive Application")
 				print("=============================\n")
-				gui.setState(4, "State 4")
+				gui.setState(4, "Adhesive Application")
+
+
+				# v   v   v   IMPLEMENT CODE HERE   v   v   v
+
+				# Move the chassis, wheel and shotglass together, in world (x, y, z) metres
+				move_x = 0.0
+				move_y = -4.8
+				move_z = 0.0
+
+				for item in [meshes["chassis"], meshes["wheel_FL"], shotglass]:
+					T = item.T.copy()            # the item's current 4x4 pose
+					T[0, 3] += move_x            # position column: x
+					T[1, 3] += move_y            # y
+					T[2, 3] += move_z            # z
+					item.T = T                   # put it back
+				env.step(0.5)
+				print(f">> Car moved by (x, y, z) = ({move_x}, {move_y}, {move_z})")
+
+
+				# ===   END CODE STATE 4   ===
 				
 				gui.waitForNext("Press 'Next state' in Swift to proceed to state <5>")
-				state_system = -1
+				state_system = 0
 			case _:
 				print(f">> Error := Unknown system state <{state_system}>, ensure state_system is set correctly")
 				running = False
