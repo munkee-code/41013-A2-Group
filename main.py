@@ -44,7 +44,8 @@ def main():
 					"conveyor"	: (cur_path / "Models" / "Conveyor" / "Conveyor.stl"),
 					"chassis"	: (cur_path / "Models" / "Chassis" / "Chassis.stl"),
 					"wheel_FL"	: (cur_path / "Models" / "Components" / "Wheel_1.stl"),
-					"comp_conv" : (cur_path / "Models" / "Components" / "Conveyor_Components.stl")
+					"comp_conv" : (cur_path / "Models" / "Components" / "Conveyor_Components.stl"),
+					"work_area" : (cur_path / "Models" / "Work_Area" / "Workarea.stl")
 				}
 
 				# Check for asset existence
@@ -63,6 +64,8 @@ def main():
 				print(">> Spawning assets into the environment...")
 				# Dictionary to store the created mesh objects
 				# NOTE: to access mesh use: meshes["name"].T
+				worker = part_mesh("SafetyPerson", pose=SE3.Trans(3.7,5.5,0) * SE3.Rz(-pi/2))
+				worker.scale = [0.5, 0.5, 0.5]
 				meshes = {
 					"warehouse": Mesh(
 					filename=str(asset_paths["warehouse"]), 
@@ -95,6 +98,12 @@ def main():
 					pose=SE3.Trans(0,0,0), 
 					collision=False
 				),
+					"work_area": Mesh(
+					filename=str(asset_paths["work_area"]),
+					pose=SE3.Trans(0,0,0),
+					collision=False
+				),
+					"worker": worker
 				}
 
 				for name, mesh in meshes.items():
@@ -124,8 +133,8 @@ def main():
 			case 1:
 				print("\n=============================")
 				print(">> State :: 1 || Pick & Place")
-				gui.setState(1, "Pick & Place")
 				print("=============================\n")
+				gui.setState(1, "Pick & Place")
 
 				# Camera setup - focus on AR4-MK5
 				camera_target = robot_AR4.base.t + np.array([0, 0, 0.35])
@@ -149,7 +158,7 @@ def main():
 				T_approach = SE3.Trans(0, 0, 0.1) * T_pickup	# approach from above
 
 				# move robot to approach pose
-				if move_robot(robot_AR4, T_approach, env):
+				if move_robot(robot_AR4, T_approach, env, steps=10):
 					print(">> Approach position reached")
 				else:
 					print(">> Approach failed")
@@ -157,7 +166,7 @@ def main():
 				## LOWER TO CONTACT WHEEL
 				wheel_thickness = 0.08
 				T_contact = SE3.Trans(0, 0, (wheel_thickness / 2)) * T_pickup
-				if move_robot(robot_AR4, T_contact, env, steps=50):
+				if move_robot(robot_AR4, T_contact, env, steps=10):
 					print(">> Contact position reached")
 					T_ee = robot_AR4.fkine(robot_AR4.q)
 					T_wheel_act = SE3(meshes["wheel_FL"].T)
@@ -170,7 +179,7 @@ def main():
 				T_mesh = SE3(meshes["wheel_FL"].T)
 				T_mesh_center = T_mesh.inv() * T_wheel
 				T_lift = SE3.Trans(0,0,0.1) * T_contact
-				if move_robot(robot_AR4, T_lift, env, steps=50,
+				if move_robot(robot_AR4, T_lift, env, steps=10,
 				              attached_mesh=meshes["wheel_FL"], grasp_transform=T_ee_wheel, gui=gui):
 					print(">> Wheel lifted successfully")
 				else:
@@ -187,14 +196,14 @@ def main():
 				T_place = T_target_mesh * T_ee_wheel.inv()
 
 				T_align = SE3.Trans(0.1, 0, 0) * T_place
-				if move_robot(robot_AR4, T_align, env,
+				if move_robot(robot_AR4, T_align, env, steps=10,
 				              attached_mesh=meshes["wheel_FL"], grasp_transform=T_ee_wheel, gui=gui):
 					print(">> Wheel aligned successfully")
 				else:
 					print(">> Alignment failed")
 				
 				## FINAL PLACEMENT
-				if move_robot(robot_AR4, T_place, env,
+				if move_robot(robot_AR4, T_place, env, steps=10,
 				              attached_mesh=meshes["wheel_FL"],grasp_transform=T_ee_wheel, gui=gui
 				):
 					print(">> Wheel placed successfully")
@@ -204,10 +213,12 @@ def main():
 				# Move the assembled car beside the fastening robot.
 				car_parts = ["chassis", "wheel_FL"]
 				shift = RS003.base.t - robot_AR4.base.t
-				T_shift = SE3.Trans(0, shift[1], 0)
-				for name in car_parts:
-					meshes[name].T = (T_shift * SE3(meshes[name].T)).A
-				env.step(0.5)
+				car_start_poses = {name: SE3(meshes[name].T) for name in car_parts}
+				for y_offset in jtraj(0, shift[1], 50).q[:, 0]:
+					T_shift = SE3.Trans(0, y_offset, 0)
+					for name in car_parts:
+						meshes[name].T = (T_shift * car_start_poses[name]).A
+					env.step(0.02)
 				print(f">> Car moved next to RS003N (shift = {np.round(shift, 3)})")
 
 				camera_target = RS003.base.t + np.array([0, 0, 0.35])
@@ -218,7 +229,6 @@ def main():
 
 				gui.waitForNext("Press 'Next state' in Swift to proceed to state <2>")
 				state_system = 2
-
 			case 2:
 				print("\n=============================")
 				print(">> State :: 2 || Fastening")
