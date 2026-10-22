@@ -12,6 +12,7 @@ from ir_support_extra_parts import *
 from Robots.AR4_MK5.AR4_MK5 import AR4_MK5
 from Robots.RS003N.RS003Nv4 import RS003N
 from Robots.RS003N.fastening import RS003NScrewing
+from Robots.RS003N.GUI import RobotGui
 from robot_utils import move_robot
 
 def main():
@@ -24,9 +25,15 @@ def main():
 	while running:
 		match state_system:
 			case 0:
+
+				robot_AR4 = AR4_MK5()
+				RS003 = RS003N()
+				gui = RobotGui(env, {"AR4_MK5": robot_AR4, "RS003N": RS003})
 				print("\n=============================")
 				print(">> State :: 0 || Spawn Assets")
 				print("=============================\n")
+
+				gui.setState(0, "Spawn Assets")
 
 				cur_path = Path(__file__).resolve().parent
 
@@ -96,24 +103,28 @@ def main():
 				print(">> All assets have been spawned into the environment.\n")
 
 				print(">> Spawning Robots into the environment...")
-				robot_AR4 = AR4_MK5()
 				robot_AR4.q = np.zeros(robot_AR4.n)
 				robot_AR4.base = SE3.Trans(3.75, 6.9, 0.15) * SE3.Rz(pi)
 				robot_AR4.add_to_env(env)
 				print(">> Robot AR4_MK5 added to the environment")
 
-				RS003 = RS003N()
 				RS003.q = RS003._qtest
 				RS003.base = SE3.Trans(3.5, 4.9, 0.15) * SE3.Rz(pi/2)
 				RS003.add_to_env(env)
 				RS003qHome = np.array(RS003.q, dtype=float)
 
+				shotglass_start = SE3.Trans(-0.3, -0.30, 0.05) * SE3.Ry(pi)
+				shotglass = part_mesh("ShotGlass", pose=RS003.base * shotglass_start)
+				env.add(shotglass)
+				print(">> Shot glass added to the environment")
+
+				gui.waitForNext("Press 'Next state' in Swift to proceed to state <1>")
 				
-				input("Press Enter to proceed to the next state <1>")
 				state_system = 1
 			case 1:
 				print("\n=============================")
 				print(">> State :: 1 || Pick & Place")
+				gui.setState(1, "Pick & Place")
 				print("=============================\n")
 
 				# Scene Config := Camera setup (focus on AR4-MK5)
@@ -140,7 +151,7 @@ def main():
 				T_tar_FL = comp_tar["FL"]
 
 				# WHEEL PICKUP: approach wheel -> contact wheel -> 'attach' wheel
-				if move_robot(robot_AR4, T_approach, env) and move_robot(robot_AR4, T_contact, env, steps=50):
+				if move_robot(robot_AR4, T_approach, env, gui=gui) and move_robot(robot_AR4, T_contact, env, steps=50, gui=gui):
 					print(">> Wheel pickup position reached")
 
 					# attach wheel to end-effector
@@ -159,20 +170,20 @@ def main():
 
 					# WHEEL PLACEMENT: lift -> align -> place
 					# NOTE: using primitive RRT for collision detection
-					if move_robot(robot_AR4, T_lift, env, steps=50, attached_mesh=wheel, grasp_transform=T_ee_wheel):
+					if (move_robot(robot_AR4, T_lift, env, steps=50, attached_mesh=wheel, grasp_transform=T_ee_wheel, gui=gui)):
 						print(">> Wheel Lifted successfully")
 
-						if move_robot(robot_AR4, T_align, env, steps=50, attached_mesh=wheel, grasp_transform=T_ee_wheel):
+						if move_robot(robot_AR4, T_align, env, steps=50, attached_mesh=wheel, grasp_transform=T_ee_wheel, gui=gui):
 							print(">> Wheel aligned successfully")
 
-							if move_robot(robot_AR4, T_place, env, steps=50, attached_mesh=wheel, grasp_transform=T_ee_wheel):
+							if move_robot(robot_AR4, T_place, env, steps=50, attached_mesh=wheel, grasp_transform=T_ee_wheel, gui=gui):
 								print(">> Wheel placed successfully")
 							else:
 								print(">> Wheel placement failed")
 						else:
 							print(">> Wheel alignment failed")
 					else:
-						print(">> Wheel lift failed")
+						print(">> Wheel Lift failed")
 				else:
 					print(">> Wheel pickup failed")
 				
@@ -191,37 +202,49 @@ def main():
 				
 				# ===   END CODE STATE 1   ===
 
-				input("Press Enter to proceed to the next state <2>")
+				gui.waitForNext("Press 'Next state' in Swift to proceed to state <2>")
 				state_system = 2
+
 			case 2:
 				print("\n=============================")
 				print(">> State :: 2 || Fastening")
 				print("=============================\n")
+				gui.setState(2, "Fastening")
 
 				# v   v   v   IMPLEMENT CODE HERE   v   v   v
 
-				fastening = RS003NScrewing(env, RS003)
-				fastening.run()
+				# Pick -> slide in -> screw. run() waits for 'Start RS003N' first.
+				fastening = RS003NScrewing(env, RS003, gui, [shotglass])
+				if fastening.run():
+					print(">> Fastening complete")
+				else:
+					print(">> Fastening stopped early")
 
 				# ===   END CODE STATE 2   ===
 
-				input("Press Enter to proceed to the next state <3>")
+				gui.waitForNext("Press 'Next state' in Swift to proceed to state <3>")
 				state_system = 3
+
 			case 3:
 				print("\n=============================")
 				print(">> State :: 3 || Spray Painting")
 				print("=============================\n")
+				gui.setState(3, "Spray Painting")
+				
+				
 
 				# v   v   v   IMPLEMENT CODE HERE   v   v   v
 
 
-				input("Press Enter to proceed to the next state <4>")
+				gui.waitForNext("Press 'Next state' in Swift to proceed to state <4>")
 				state_system = 4
 			case 4:
 				print("\n=============================")
 				print(">> State :: 4 || ...")
 				print("=============================\n")
-				input("Press Enter to proceed to the next state <_>")
+				gui.setState(4, "State 4")
+				
+				gui.waitForNext("Press 'Next state' in Swift to proceed to state <5>")
 				state_system = -1
 			case _:
 				print(f">> Error := Unknown system state <{state_system}>, ensure state_system is set correctly")
