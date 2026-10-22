@@ -36,7 +36,7 @@ def main():
 				RS003 = RS003N()
 				CRX = CRXPaint()
 				ur3e = UR3e()
-				gui = RobotGui(env, {"AR4_MK5": robot_AR4, "RS003N": RS003, "UR3e": ur3e})
+				gui = RobotGui(env, {"AR4_MK5": robot_AR4, "RS003N": RS003, "UR3e": ur3e, "CRX_10iAL_Paint": CRX})
 				#estop_thread = threading.Thread(
 				#	target=lambda: Estop(Port=PORT, env=env,gui=gui),
 				#	daemon=True
