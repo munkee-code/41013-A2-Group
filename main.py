@@ -18,7 +18,7 @@ from Robots.RS003N.fastening import RS003NScrewing
 from Robots.RS003N.GUI import RobotGui
 from Robots.CRX_10iAL_Paint.CRX_10iAL_Paint import CRXPaint, CRXRMRC
 import threading
-from Estop import Estop
+#from Estop import Estop
 from robot_utils import move_robot
 def main():
 	#Start Swift Env
@@ -37,11 +37,11 @@ def main():
 				CRX = CRXPaint()
 				ur3e = UR3e()
 				gui = RobotGui(env, {"AR4_MK5": robot_AR4, "RS003N": RS003, "UR3e": ur3e})
-				estop_thread = threading.Thread(
-					target=lambda: Estop(Port=PORT, env=env,gui=gui),
-					daemon=True
-				)
-				estop_thread.start()
+				#estop_thread = threading.Thread(
+				#	target=lambda: Estop(Port=PORT, env=env,gui=gui),
+				#	daemon=True
+				#)
+				#estop_thread.start()
 				print("\n=============================")
 				print(">> State :: 0 || Spawn Assets")
 				print("=============================\n")
