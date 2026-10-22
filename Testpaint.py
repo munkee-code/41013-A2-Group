@@ -37,12 +37,81 @@ cyl_viz.create_cylinders()
 UR.add_to_env(env)
 
 CRXT = Test()
-CRXT.q = CRX.home_q
+CRXT.q = (0,0,0,0,0,0)
 CRXT.base = SE3.Trans(-0.5,0.5,0.1)
 cyl_viz = CylindricalDHRobotPlot(CRXT, cylinder_radius=0.05, color="blue")
 cyl_viz.create_cylinders()
 env.add(CRXT)
-PoseT = SE3.Trans(0.5,0.5,0)
+#env.hold()
+
+
+CRX.q = (0,0,0,0,0,0)
+Angle = (pi/2,0,0,0,0,0)
+TRAJT = jtraj(CRX.q,Angle,50)
+#Move through all joint angles
+for q in TRAJT.q:
+    CRX.q = q
+    env.step(0.05)
+
+CRX.q = (pi/2,0,0,0,0,0)
+Angle = (pi/2,pi/2,0,0,0,0)
+TRAJT = jtraj(CRX.q,Angle,50)
+#Move through all joint angles
+for q in TRAJT.q:
+    CRX.q = q
+    env.step(0.05)
+
+CRX.q = (pi/2,pi/2,0,0,0,0)
+Angle = (pi/2,pi/2,pi/2,0,0,0)
+TRAJT = jtraj(CRX.q,Angle,50)
+#Move through all joint angles
+for q in TRAJT.q:
+    CRX.q = q
+    env.step(0.05)
+
+CRX.q = (pi/2,pi/2,pi/2,0,0,0)
+Angle = (pi/2,pi/2,pi/2,pi/2,0,0)
+TRAJT = jtraj(CRX.q,Angle,50)
+#Move through all joint angles
+for q in TRAJT.q:
+    CRX.q = q
+    env.step(0.05)
+
+CRX.q = (pi/2,pi/2,pi/2,pi/2,0,0)
+Angle = (pi/2,pi/2,pi/2,pi/2,pi/2,0)
+TRAJT = jtraj(CRX.q,Angle,50)
+#Move through all joint angles
+for q in TRAJT.q:
+    CRX.q = q
+    env.step(0.05)
+
+CRX.q = (pi/2,pi/2,pi/2,pi/2,pi/2,0)
+Angle = (pi/2,pi/2,pi/2,pi/2,pi/2,pi/2)
+TRAJT = jtraj(CRX.q,Angle,50)
+#Move through all joint angles
+for q in TRAJT.q:
+    CRX.q = q
+    env.step(0.05)
+
+env.hold()
+
+
+CRX.q = (0,0,0,0,0,0)
+Angle = (0,0,pi/2,0,0,0)
+TRAJ = jtraj(CRX.q,Angle,50)
+#Move through all joint angles
+for q in TRAJ.q:
+    CRX.q = q
+    env.step(0.05)
+
+
+CRX.q = (0,0,0,0,0,0)
+env.step(0.05)
+CRX.q = (0,0,0,0,0,0)
+env.step(0.05)
+CRX.q = (0,0,0,0,0,0)
+CRX.q = (0,0,0,0,0,0)
+CRX.q = (0,0,0,0,0,0)
 
 env.hold()
 #move_robot(CRX,PoseT,env,steps=50)
