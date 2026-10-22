@@ -64,11 +64,11 @@ def main():
 				# Dictionary to store the created mesh objects
 				# NOTE: to access mesh use: meshes["name"].T
 				meshes = {
-				#	"warehouse": Mesh(
-				#	filename=str(asset_paths["warehouse"]), 
-				#	pose=SE3.Rx(pi/2), 
-				#	collision=False
-				#),
+					"warehouse": Mesh(
+					filename=str(asset_paths["warehouse"]), 
+					pose=SE3.Rx(pi/2), 
+					collision=False
+				),
 					"floor": Mesh(
 					filename=str(asset_paths["floor"]), 
 					pose=SE3.Trans(2.7, 4.1, 0.01),
