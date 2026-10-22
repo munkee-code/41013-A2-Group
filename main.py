@@ -7,14 +7,13 @@ from spatialgeometry import Cuboid, Mesh
 from spatialmath import SE3
 from spatialmath.base import *
 from math import pi
-from ir_support import CylindricalDHRobotPlot
+from ir_support import UR3e
 from ir_support_extra_parts import *
 from Robots.AR4_MK5.AR4_MK5 import AR4_MK5
 from Robots.RS003N.RS003Nv4 import RS003N
 from Robots.RS003N.fastening import RS003NScrewing
 from Robots.RS003N.GUI import RobotGui
 from robot_utils import move_robot
-
 def main():
 	env = swift.Swift()
 	env.launch(realtime=True)
@@ -28,7 +27,8 @@ def main():
 
 				robot_AR4 = AR4_MK5()
 				RS003 = RS003N()
-				gui = RobotGui(env, {"AR4_MK5": robot_AR4, "RS003N": RS003})
+				ur3e = UR3e()
+				gui = RobotGui(env, {"AR4_MK5": robot_AR4, "RS003N": RS003, "UR3e": ur3e})
 				print("\n=============================")
 				print(">> State :: 0 || Spawn Assets")
 				print("=============================\n")
@@ -107,7 +107,8 @@ def main():
 					"robot_table": part_mesh("RobotTable", pose=SE3.Trans(3.9, 6.9, 0.15 - 0.615)),
 					"worker_table": part_mesh("RobotTable", pose=SE3.Trans(3.7, 5.85, 0)),
 					"stop_button": part_mesh("emergencyStopButton", pose=SE3.Trans(3.7, 5.85, 0.3075)),
-					"glass_table": part_mesh("RobotTable", pose=SE3.Trans(3.8, 4.6, 0.16 - 0.3075))
+					"glass_table": part_mesh("RobotTable", pose=SE3.Trans(3.8, 4.6, 0.16 - 0.3075)),
+					"ur3e_table": part_mesh("RobotTable", pose=SE3.Trans(2.25, 1.55, 0.5 - 0.615))
 				}
 				meshes["glass_table"].scale = [0.5, 0.5, 0.5]
 				meshes["worker_table"].scale = [0.5, 0.5, 0.5]
@@ -128,6 +129,11 @@ def main():
 				RS003.base = SE3.Trans(3.5, 4.9, 0.15) * SE3.Rz(pi/2)
 				RS003.add_to_env(env)
 				RS003qHome = np.array(RS003.q, dtype=float)
+
+				#Spawns the UR3 on top of the table
+				ur3e.base = SE3.Trans(2.25, 1.55, 0.5)
+				ur3e.add_to_env(env)
+				qUR3Home = np.asarray(ur3e.q).copy()
 
 				shotglass_start = SE3.Trans(-0.3, -0.30, 0.05) * SE3.Ry(pi)
 				shotglass = part_mesh("ShotGlass", pose=RS003.base * shotglass_start)
@@ -280,9 +286,29 @@ def main():
 				state_system = 4
 			case 4:
 				print("\n=============================")
-				print(">> State :: 4 || ...")
+				print(">> State :: 4 || Adhesive Application")
 				print("=============================\n")
-				gui.setState(4, "State 4")
+				gui.setState(4, "Adhesive Application")
+
+
+				# v   v   v   IMPLEMENT CODE HERE   v   v   v
+
+				# Move the chassis, wheel and shotglass together, in world (x, y, z) metres
+				move_x = 0.0
+				move_y = -4.8
+				move_z = 0.0
+
+				for item in [meshes["chassis"], meshes["wheel_FL"], shotglass]:
+					T = item.T.copy()            # the item's current 4x4 pose
+					T[0, 3] += move_x            # position column: x
+					T[1, 3] += move_y            # y
+					T[2, 3] += move_z            # z
+					item.T = T                   # put it back
+				env.step(0.5)
+				print(f">> Car moved by (x, y, z) = ({move_x}, {move_y}, {move_z})")
+
+
+				# ===   END CODE STATE 4   ===
 				
 				gui.waitForNext("Press 'Next state' in Swift to proceed to state <5>")
 				state_system = -1
