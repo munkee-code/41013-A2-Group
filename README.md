@@ -70,10 +70,10 @@ Assets include:
 Asset paths and mesh objects are managed using Python dictionaries to simplify loading and accessing objects throughout the simulation.
 
 #### STATE | 1 := Pick & Place
-TODO
+The AR4-MK5 picks up the front-left wheel, aligns it with the chassis, and places it. The car is then shifted beside the RS003N station for fastening.
 
 #### STATE | 2 := Fastening
-TODO
+The RS003N picks up the shot glass component, carries it to the fastening location, and performs the fastening sequence.
 
 #### STATE | 3 := Spray Painting
 TODO
@@ -207,3 +207,21 @@ The simulation launches in Swift and tests the movement of all six joints indivi
 The `Test Scripts/` directory contains standalone Python scripts used to develop, test, and validate individual components of the project. 
 
 These scripts are separate from the main simulation and may be used to experiment with functionality before integrating it into main.py.
+
+### UR3 trajectory tests
+
+`real_test.py` follows hard-coded Cartesian offsets for a 6 cm square in the X-Z plane, 2 cm above the current end-effector position. Inverse kinematics converts the corners into joint waypoints, which the script publishes to the UR controller. Verify the robot's starting pose, workspace, and joint ordering before running it on hardware.
+
+The separate `Test Scripts/real_test_sim.py` script previews an RMRC circle using the visual UR3 model, without connecting to ROS or commanding a physical robot.
+
+Run from the repository root to view a 3D plot:
+
+```text
+python "Test Scripts/real_test_sim.py"
+```
+
+To animate the trajectory in Swift instead:
+
+```text
+python "Test Scripts/real_test_sim.py" --mode swift
+```
