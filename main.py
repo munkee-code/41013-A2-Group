@@ -105,10 +105,11 @@ def main():
 				),
 					"worker": worker,
 					"robot_table": part_mesh("RobotTable", pose=SE3.Trans(3.9, 6.9, 0.15 - 0.615)),
-					"monitor": part_mesh("Monitor"),
 					"worker_table": part_mesh("RobotTable", pose=SE3.Trans(3.7, 5.85, 0)),
-					"stop_button": part_mesh("emergencyStopButton", pose=SE3.Trans(3.7, 5.85, 0.3075))
+					"stop_button": part_mesh("emergencyStopButton", pose=SE3.Trans(3.7, 5.85, 0.3075)),
+					"glass_table": part_mesh("RobotTable", pose=SE3.Trans(3.8, 4.6, 0.16 - 0.3075))
 				}
+				meshes["glass_table"].scale = [0.5, 0.5, 0.5]
 				meshes["worker_table"].scale = [0.5, 0.5, 0.5]
 				meshes["stop_button"].scale = [0.25, 0.25, 0.25]
 
