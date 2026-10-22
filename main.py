@@ -108,7 +108,7 @@ def main():
 					"worker_table": part_mesh("RobotTable", pose=SE3.Trans(3.7, 5.85, 0)),
 					"stop_button": part_mesh("emergencyStopButton", pose=SE3.Trans(3.7, 5.85, 0.3075)),
 					"glass_table": part_mesh("RobotTable", pose=SE3.Trans(3.8, 4.6, 0.16 - 0.3075)),
-					"ur3e_table": part_mesh("RobotTable", pose=SE3.Trans(2.25, 1.55, 0.5 - 0.615))
+					"ur3e_table": part_mesh("RobotTable", pose=SE3.Trans(1.9, 1.55, 0.5 - 0.615))
 				}
 				meshes["glass_table"].scale = [0.5, 0.5, 0.5]
 				meshes["worker_table"].scale = [0.5, 0.5, 0.5]
@@ -131,7 +131,7 @@ def main():
 				RS003qHome = np.array(RS003.q, dtype=float)
 
 				#Spawns the UR3 on top of the table
-				ur3e.base = SE3.Trans(2.25, 1.55, 0.5)
+				ur3e.base = SE3.Trans(1.9, 1.55, 0.5)
 				ur3e.add_to_env(env)
 				qUR3Home = np.asarray(ur3e.q).copy()
 
