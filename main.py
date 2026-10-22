@@ -12,7 +12,7 @@ from ir_support_extra_parts import *
 from Robots.AR4_MK5.AR4_MK5 import AR4_MK5
 from Robots.RS003N.RS003Nv4 import RS003N
 from Robots.RS003N.fastening import RS003NScrewing
-from robot_utils import move_robot
+from samuel_fix import move_robot
 
 def main():
 	env = swift.Swift()
