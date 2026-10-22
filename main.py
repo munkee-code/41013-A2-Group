@@ -103,8 +103,14 @@ def main():
 					pose=SE3.Trans(0,0,0),
 					collision=False
 				),
-					"worker": worker
+					"worker": worker,
+					"robot_table": part_mesh("RobotTable", pose=SE3.Trans(3.9, 6.9, 0.15 - 0.615)),
+					"monitor": part_mesh("Monitor"),
+					"worker_table": part_mesh("RobotTable", pose=SE3.Trans(3.7, 5.85, 0)),
+					"stop_button": part_mesh("emergencyStopButton", pose=SE3.Trans(3.7, 5.85, 0.3075))
 				}
+				meshes["worker_table"].scale = [0.5, 0.5, 0.5]
+				meshes["stop_button"].scale = [0.25, 0.25, 0.25]
 
 				for name, mesh in meshes.items():
 					env.add(mesh)
@@ -214,11 +220,21 @@ def main():
 				car_parts = ["chassis", "wheel_FL"]
 				shift = RS003.base.t - robot_AR4.base.t
 				car_start_poses = {name: SE3(meshes[name].T) for name in car_parts}
-				for y_offset in jtraj(0, shift[1], 50).q[:, 0]:
-					T_shift = SE3.Trans(0, y_offset, 0)
-					for name in car_parts:
-						meshes[name].T = (T_shift * car_start_poses[name]).A
-					env.step(0.02)
+				# chassis centre starts at y = 7.505; pause it at y = 6.35 while the worker turns
+				stop_offset = 6.35 - 7.505
+				worker_pose = SE3(meshes["worker"].T)
+				turn_angles = np.concatenate((np.linspace(0, pi/2, 25), np.full(25, pi/2), np.linspace(pi/2, 0, 25)))
+				for seg in range(2):
+					if seg == 1:
+						for ang in turn_angles:
+							meshes["worker"].T = (worker_pose * SE3.Rz(ang)).A
+							env.step(0.02)
+					y_from, y_to = [(0, stop_offset), (stop_offset, shift[1])][seg]
+					for y_offset in jtraj(y_from, y_to, 50).q[:, 0]:
+						T_shift = SE3.Trans(0, y_offset, 0)
+						for name in car_parts:
+							meshes[name].T = (T_shift * car_start_poses[name]).A
+						env.step(0.02)
 				print(f">> Car moved next to RS003N (shift = {np.round(shift, 3)})")
 
 				camera_target = RS003.base.t + np.array([0, 0, 0.35])
