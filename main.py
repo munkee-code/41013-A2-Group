@@ -116,80 +116,66 @@ def main():
 				print(">> State :: 1 || Pick & Place")
 				print("=============================\n")
 
-				# Camera setup - focus on AR4-MK5
+				# Scene Config := Camera setup (focus on AR4-MK5)
 				camera_target = robot_AR4.base.t + np.array([0, 0, 0.35])
 				camera_position = robot_AR4.base.t + np.array([1.2, 1.0, 1.2])
 				env.set_camera_pose(camera_position, camera_target)
 
 				# v   v   v   IMPLEMENT CODE HERE   v   v   v
 				
-				# dictionary to store target poses for components
+				## Final Target poses for components
 				comp_tar = {
 					"FL": 
 						(SE3.Trans(3.15, 6.92, 0.4)) * SE3.Ry(pi/2)		# WARNING DO NOT CHANGE!!!
 				}
 
-				T_tar_FL = comp_tar["FL"]
-
-				## APPROACHING WHEEL
-				# wheel approach poses
-				T_wheel = SE3.Trans(3.75, 7.45, 0.3)			# current wheel transform
+				## Required Poses
+				wheel = meshes["wheel_FL"]
+				T_wheel = SE3.Trans(3.75, 7.45, 0.3)			# current wheel transform (init)
 				T_pickup = T_wheel * SE3.Rx(pi)					# wheel center, with offset (SE3.Rx(pi))
 				T_approach = SE3.Trans(0, 0, 0.1) * T_pickup	# approach from above
+				T_contact = SE3.Trans(0, 0, 0.04) * T_pickup	# contact point (half of wheel thickness 0.08 / 2)
+				T_lift = SE3.Trans(0,0,0.1) * T_contact			# lift the wheel after contact
 
-				# move robot to approach pose
-				if move_robot(robot_AR4, T_approach, env):
-					print(">> Approach position reached")
-				else:
-					print(">> Approach failed")
+				T_tar_FL = comp_tar["FL"]
 
-				## LOWER TO CONTACT WHEEL
-				wheel_thickness = 0.08
-				T_contact = SE3.Trans(0, 0, (wheel_thickness / 2)) * T_pickup
-				if move_robot(robot_AR4, T_contact, env, steps=50):
-					print(">> Contact position reached")
+				# WHEEL PICKUP: approach wheel -> contact wheel -> 'attach' wheel
+				if move_robot(robot_AR4, T_approach, env) and move_robot(robot_AR4, T_contact, env, steps=50):
+					print(">> Wheel pickup position reached")
+
+					# attach wheel to end-effector
 					T_ee = robot_AR4.fkine(robot_AR4.q)
-					T_wheel_act = SE3(meshes["wheel_FL"].T)
-					T_ee_wheel = T_ee.inv() * T_wheel_act
-					print(">> Wheel attached to end-effector")
+					T_ee_wheel = T_ee.inv() * SE3(wheel.T)
+
+					# calculate original mesh offset
+					T_mesh_center = SE3(wheel.T).inv() * T_wheel
+
+					depth = 0.065
+					T_target = SE3.Trans(-depth, 0, 0) * T_tar_FL
+					T_place = T_target * T_mesh_center.inv() * T_ee_wheel.inv()
+
+					# alignment pose
+					T_align = SE3.Trans(0.1, 0, 0) * T_place
+
+					# WHEEL PLACEMENT: lift -> align -> place
+					# NOTE: using primitive RRT for collision detection
+					if (move_robot(robot_AR4, T_lift, env, steps=50, attached_mesh=wheel, grasp_transform=T_ee_wheel)):
+						print(">> Wheel Lifted successfully")
+
+						if move_robot(robot_AR4, T_align, env, steps=50, attached_mesh=wheel, grasp_transform=T_ee_wheel):
+							print(">> Wheel aligned successfully")
+
+							if move_robot(robot_AR4, T_place, env, steps=50, attached_mesh=wheel, grasp_transform=T_ee_wheel):
+								print(">> Wheel placed successfully")
+							else:
+								print(">> Wheel placement failed")
+						else:
+							print(">> Wheel alignment failed")
+					else:
+						print(">> Wheel Lift failed")
 				else:
-					print(">> Contact failed")
-
-				## LIFT WHEEL
-				T_mesh = SE3(meshes["wheel_FL"].T)
-				T_mesh_center = T_mesh.inv() * T_wheel
-				T_lift = SE3.Trans(0,0,0.1) * T_contact
-				if move_robot(robot_AR4, T_lift, env, steps=50,
-				              attached_mesh=meshes["wheel_FL"], grasp_transform=T_ee_wheel):
-					print(">> Wheel lifted successfully")
-				else:
-					print(">> Lift failed")
-
-				## ALIGN
-				T_target_wheel = T_tar_FL
-				T_mesh = SE3(meshes["wheel_FL"].T)
-				T_mesh_center = T_mesh.inv() * T_wheel
-
-				depth = 0.065
-				T_target_inserted = (SE3.Trans(-depth,0,0) * T_target_wheel)
-				T_target_mesh = T_target_inserted * T_mesh_center.inv()
-				T_place = T_target_mesh * T_ee_wheel.inv()
-
-				T_align = SE3.Trans(0.1, 0, 0) * T_place
-				if move_robot(robot_AR4, T_align, env,
-				              attached_mesh=meshes["wheel_FL"], grasp_transform=T_ee_wheel):
-					print(">> Wheel aligned successfully")
-				else:
-					print(">> Alignment failed")
+					print(">> Wheel pickup failed")
 				
-				## FINAL PLACEMENT
-				if move_robot(robot_AR4, T_place, env,
-				              attached_mesh=meshes["wheel_FL"],grasp_transform=T_ee_wheel
-				):
-					print(">> Wheel placed successfully")
-				else:
-					print(">> Direct placement failed")
-
 				# Move the assembled car beside the fastening robot.
 				car_parts = ["chassis", "wheel_FL"]
 				shift = RS003.base.t - robot_AR4.base.t
@@ -202,7 +188,7 @@ def main():
 				camera_target = RS003.base.t + np.array([0, 0, 0.35])
 				camera_position = RS003.base.t + np.array([1.2, 1.0, 1.2])
 				env.set_camera_pose(camera_position, camera_target)
-
+				
 				# ===   END CODE STATE 1   ===
 
 				input("Press Enter to proceed to the next state <2>")

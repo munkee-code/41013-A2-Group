@@ -7,8 +7,7 @@ joint-space interpolation.
 
 Returns True if IK succeeds, otherwise False.
 """
-def move_robot(robot, target_pose, env, steps=100, 
-               increments=0.05, attached_mesh=None, grasp_transform=None):
+def move_robot(robot, target_pose, env, steps=100, increments=0.05, attached_mesh=None, grasp_transform=None):
     ik = robot.ikine_LM(
         target_pose,
         q0=robot.q,
