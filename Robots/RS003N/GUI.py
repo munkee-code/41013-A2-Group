@@ -253,7 +253,7 @@ class RobotGui:
         def onNext(_=None):
             self.nextPressed = True
 
-        # The four buttons, in panel order. The handlers only set flags; the code waiting on
+        # The buttons, in panel order. The handlers only set flags; the code waiting on
         # them (below) does the actual work
         self.env.add(swift.Button(onStart, desc=self.startLabel))
         self.env.add(swift.Button(onEstop, desc="E-STOP"))

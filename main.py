@@ -1,5 +1,4 @@
 ###	41013-A2
-
 ##Libraries
 from matplotlib.table import table
 import numpy as np
@@ -31,7 +30,6 @@ def main():
 	while running:
 		match state_system:
 			case 0:
-
 				robot_AR4 = AR4_MK5()
 				RS003 = RS003N()
 				CRX = CRXPaint()
@@ -135,6 +133,7 @@ def main():
 				print(">> Spawning Robots into the environment...")
 				robot_AR4.q = np.zeros(robot_AR4.n)
 				robot_AR4.base = SE3.Trans(3.75, 6.9, 0.15) * SE3.Rz(pi)
+				T_AR4Zero = robot_AR4.fkine(robot_AR4.q)
 				robot_AR4.add_to_env(env)
 				print(">> Robot AR4_MK5 added to the environment")
 
@@ -240,6 +239,8 @@ def main():
 				else:
 					print(">> Direct placement failed")
 
+				
+
 				# Move the assembled car beside the fastening robot.
 				car_parts = ["chassis", "wheel_FL"]
 				shift = RS003.base.t - robot_AR4.base.t
@@ -260,6 +261,9 @@ def main():
 							meshes[name].T = (T_shift * car_start_poses[name]).A
 						env.step(0.02)
 				print(f">> Car moved next to RS003N (shift = {np.round(shift, 3)})")
+
+				if move_robot(robot_AR4, T_AR4Zero, env, gui=gui):
+					print(">> AR4 returned to its zero-joint pose")
 
 				camera_target = RS003.base.t + np.array([0, 0, 0.35])
 				camera_position = RS003.base.t + np.array([1.2, 1.0, 1.2])
