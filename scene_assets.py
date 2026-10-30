@@ -118,6 +118,7 @@ def load_scene_assets(env):
     meshes["worker"].scale = [0.5, 0.5, 0.5]
     meshes["worker_table"].scale = [0.5, 0.5, 0.5]
     meshes["stop_button"].scale = [0.25, 0.25, 0.25]
+    meshes["glass_table"].scale = [0.5, 0.5, 0.5]
 
     print(">> Spawning assets into the environment.")
 
@@ -174,4 +175,4 @@ def move_asset(env, meshes, assets, translation=(0, 0, 0), rotation=(0, 0, 0), s
 
         env.step(increments)
 
-    print(f">> Asset(s) '{', '.join(assets)}' moved by:\nTranslation: {translation}, Rotation: {rotation}")
+    print(f">> Asset(s) '{', '.join(assets)}' moved by:\n   Translation: {translation}\n   Rotation: {rotation}")

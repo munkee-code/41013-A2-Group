@@ -2,6 +2,7 @@ from math import pi
 from spatialmath import SE3
 from robot_utils import move_robot
 import numpy as np
+from ar4_collision import load_collision_meshes, plan_wheel_path, execute_wheel_trajectory
 
 def pick_and_place(env, robot, meshes, gui=None):
     """
@@ -81,13 +82,10 @@ def pick_and_place(env, robot, meshes, gui=None):
     T_mesh_center = T_mesh.inv() * T_wheel
 
     depth = 0.065
-    T_target_inserted = (
-        SE3.Trans(-depth, 0, 0) * T_target_wheel
-    )
 
+    T_target_inserted = SE3.Trans(-depth, 0, 0) * T_target_wheel
     T_target_mesh = T_target_inserted * T_mesh_center.inv()
     T_place = T_target_mesh * T_ee_wheel.inv()
-
     T_align = SE3.Trans(0.1, 0, 0) * T_place
 
     if move_robot(

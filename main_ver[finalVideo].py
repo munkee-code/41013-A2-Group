@@ -115,32 +115,32 @@ def main():
 				else:
 					print(">> Pick and place operation failed")
 
-				# Move the assembled car beside the fastening robot.
+				# Move assembled car to worker
 				car_parts = ["chassis", "wheel_FL"]
 				shift = RS003.base.t - robot_AR4.base.t
 
-				
-				car_start_poses = {name: SE3(meshes[name].T) for name in car_parts}
-				# chassis centre starts at y = 7.505; pause it at y = 6.35 while the worker turns
 				stop_offset = 6.35 - 7.505
+				move_asset(env=env, meshes=meshes, assets=car_parts, translation=(0, stop_offset, 0))
+				print(">> Car moved to worker.")
+
+				# Worker inspection animation
 				worker_pose = SE3(meshes["worker"].T)
-				turn_angles = np.concatenate((np.linspace(0, pi/2, 25), np.full(25, pi/2), np.linspace(pi/2, 0, 25)))
-				for seg in range(2):
-					if seg == 1:
-						for ang in turn_angles:
-							meshes["worker"].T = (worker_pose * SE3.Rz(ang)).A
-							env.step(0.02)
-					y_from, y_to = [(0, stop_offset), (stop_offset, shift[1])][seg]
-					for y_offset in jtraj(y_from, y_to, 50).q[:, 0]:
-						T_shift = SE3.Trans(0, y_offset, 0)
-						for name in car_parts:
-							meshes[name].T = (T_shift * car_start_poses[name]).A
-						env.step(0.02)
-				print(f">> Car moved next to RS003N (shift = {np.round(shift, 3)})")
+				turn_angles = np.concatenate((
+					np.linspace(0, pi/2, 25),
+					np.full(25, pi/2),
+					np.linspace(pi/2, 0, 25)
+				))
+				for angle in turn_angles:
+					meshes["worker"].T = (worker_pose * SE3.Rz(angle)).A
+					env.step(0.02)
+				print(">> Worker inspection complete")
 
-				if move_robot(robot_AR4, T_AR4Zero, env, gui=gui):
-					print(">> AR4 returned to its zero-joint pose")
+				# Move car to RS003N
+				remaining_offset = shift[1] - stop_offset
+				move_asset(env=env, meshes=meshes, assets=car_parts, translation=(0, remaining_offset, 0))
+				print(">> Car moved to RS003N.")
 
+				# Camera setup - focus on RS003N
 				camera_target = RS003.base.t + np.array([0, 0, 0.35])
 				camera_position = RS003.base.t + np.array([1.2, 1.0, 1.2])
 				env.set_camera_pose(camera_position, camera_target)
