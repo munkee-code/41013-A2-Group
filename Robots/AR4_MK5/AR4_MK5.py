@@ -11,6 +11,8 @@ from ir_support.robots.UTSMeshRobot import UTSMeshRobot
 import time
 import os
 from math import pi
+from swift import Slider
+import numpy as np
 
 # fix for swift incompatibility with Mesh class
 if not hasattr(Mesh, "_update_pyb"):
@@ -105,51 +107,56 @@ class AR4_MK5(UTSMeshRobot):
 
         return links
 
+    def teach(self, env):
+        """
+        Add six joint-angle sliders to the Swift environment.
+        Joint angles are displayed in degrees.
+        """
+
+        for i in range(self.n):
+
+            joint_index = i
+
+            def update_joint(value, index=joint_index):
+                q = self.q.copy()
+                q[index] = np.deg2rad(float(value))
+                self.q = q
+
+            slider = Slider(
+                update_joint,
+                min=round(float(np.rad2deg(self.qlim[0, i])), 1),
+                max=round(float(np.rad2deg(self.qlim[1, i])), 1),
+                value=round(float(np.rad2deg(self.q[i])), 1),
+                desc=f"Joint {i + 1}",
+                unit="°"
+            )
+
+            env.add(slider)
     #-----------------------------------------------------------------------------------------------
     ## @brief Test the AR4-MK5 robot by moving it from its initial configuration to a goal configuration
     ## @details The robot is added to a Swift environment and a joint trajectory is executed
     ## @return None
     def test(self):
-        # initialise swift environment
+        # Initialise Swift
         env = swift.Swift()
         env.launch(realTime=True)
 
-        # set the initial joint configuration and base pose
+        # Set initial configuration
         self.q = self._qtest
         self.base = SE3(0.5, 0.5, 0)
 
-        # add the robot to the Swift environment
+        # Add robot to Swift
         self.add_to_env(env)
 
-        # define the goal joint configuration and generate a joint trajectory
-        q_home = self.q.copy()
-        
-        for i in range(self.n):
-            q_goal = q_home.copy()
-            q_goal[i] += pi/6
+        # Add joint-angle controls
+        self.teach(env)
 
-            qtraj = rtb.jtraj(self.q, q_goal, 50).q
+        print(">> AR4-MK5 Teach Mode Enabled")
+        print(">> Adjust the six joint sliders in Swift")
 
-            # execute the joint trajectory in the Swift environment
-            #fig = self.plot(self.q)
-            for q in qtraj:
-                self.q = q
-                env.step(0.02)
-                #fig.step(0.01)
-
-            time.sleep(3)
-            input("Press Enter to continue...")
-
-        # execute the joint trajectory in the Swift environment
-        #fig = self.plot(self.q)
-        for q in qtraj:
-            self.q = q
-            env.step(0.02)
-            #fig.step(0.01)
-
-        time.sleep(3)
-        input("Press Enter to continue...")
-        #env.hold()
+        # Keep simulation running
+        while True:
+            env.step(0.05)
 
 #---------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
