@@ -19,6 +19,7 @@ from Robots.CRX_10iAL_Paint.CRX_10iAL_Paint import CRXPaint, CRXRMRC
 import threading
 #from Estop import Estop
 from robot_utils import move_robot
+
 def main():
 	#Start Swift Env
 	env = swift.Swift()
