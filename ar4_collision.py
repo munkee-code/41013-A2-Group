@@ -58,24 +58,30 @@ def is_intersection_point_inside_triangle(intersect_p, triangle_verts):
         bool: True if the point is inside the triangle, False otherwise.
     """
 
+    # vectors along the edges of the triangle
     u = triangle_verts[1, :] - triangle_verts[0, :]
     v = triangle_verts[2, :] - triangle_verts[0, :]
 
+    # dot products for the edge vectors
     uu = np.dot(u, u)
     uv = np.dot(u, v)
     vv = np.dot(v, v)
 
+    # vector from triangle vertex to intersection point
     w = intersect_p - triangle_verts[0, :]
 
+    # dot products for the vector from vertex to intersection point
     wu = np.dot(w, u)
     wv = np.dot(w, v)
 
+    # compute the determinant for coordinates
     D = uv * uv - uu * vv
 
     # check for degenerate triangle (area close to zero)
     if abs(D) < 1e-12:
         return False
 
+    # compute coordinates for the intersection point
     s = (uv * wv - vv * wu) / D
     t = (uv * wu - uu * wv) / D
 

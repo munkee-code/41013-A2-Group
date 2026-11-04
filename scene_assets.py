@@ -36,11 +36,11 @@ def load_scene_assets(env):
 
     # Scene meshes
     meshes = {
-        "warehouse": Mesh(
-            filename=str(asset_paths["warehouse"]),
-            pose=SE3.Rx(pi/2),
-            collision=False
-        ),
+        #"warehouse": Mesh(
+        #    filename=str(asset_paths["warehouse"]),
+        #    pose=SE3.Rx(pi/2),
+        #    collision=False
+        #),
         "floor": Mesh(
             filename=str(asset_paths["floor"]),
             pose=SE3.Trans(2.7, 4.1, 0.01),
@@ -57,6 +57,7 @@ def load_scene_assets(env):
         "chassis": Mesh(
             filename=str(asset_paths["chassis"]),
             pose=SE3.Trans(0, 0, 0),
+            color=[0.8, 0.8, 0.8],
             collision=False
         ),
 

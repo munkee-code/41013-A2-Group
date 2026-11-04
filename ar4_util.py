@@ -20,10 +20,11 @@ def pick_and_place(env, robot, meshes, gui=None, collision=False):
     """
 
     # save robot's initial joint configuration
-    q_home = robot.q.copy()
-    T_home = robot.fkine(q_home)
+    q_home = robot.q.copy()             # q (init)
+    T_home = robot.fkine(q_home)        # ee (init)
 
     # Dictionary to store target poses for components
+    # NOTE: for now just one target / component is defined (Front Left wheel)
     comp_tar = {
         "FL":
             (SE3.Trans(3.15, 6.92, 0.4)) * SE3.Ry(pi/2)  # WARNING DO NOT CHANGE!!!
@@ -31,7 +32,10 @@ def pick_and_place(env, robot, meshes, gui=None, collision=False):
 
     T_tar_FL = comp_tar["FL"]
 
-    ## APPROACHING WHEEL
+    #===============================================================================================
+    # APPROACHING WHEEL
+    #===============================================================================================
+
     # Wheel approach poses
     T_wheel = SE3.Trans(3.75, 7.45, 0.3)
     T_pickup = T_wheel * SE3.Rx(pi)
@@ -43,13 +47,17 @@ def pick_and_place(env, robot, meshes, gui=None, collision=False):
     else:
         print(">> Approach failed")
 
-    ## LOWER TO CONTACT WHEEL
+    #===============================================================================================
+    # LOWER TO CONTACT WHEEL
+    #===============================================================================================
+    
     wheel_thickness = 0.08
     T_contact = SE3.Trans(0, 0, (wheel_thickness / 2)) * T_pickup
 
     if move_robot(robot, T_contact, env, steps=10):
         print(">> Contact position reached")
 
+        # compute relative transform between ee and wheel mesh
         T_ee = robot.fkine(robot.q)
         T_wheel_act = SE3(meshes["wheel_FL"].T)
         T_ee_wheel = T_ee.inv() * T_wheel_act
@@ -58,7 +66,7 @@ def pick_and_place(env, robot, meshes, gui=None, collision=False):
     else:
         print(">> Contact failed")
 
-    ## LIFT WHEEL
+    # LIFT WHEEL
     T_mesh = SE3(meshes["wheel_FL"].T)
     T_mesh_center = T_mesh.inv() * T_wheel
 
@@ -77,7 +85,10 @@ def pick_and_place(env, robot, meshes, gui=None, collision=False):
     else:
         print(">> Lift failed")
 
-    ## ALIGN
+    #===============================================================================================
+    # ALIGN (Calculations)
+    #===============================================================================================
+
     T_target_wheel = T_tar_FL
     T_mesh = SE3(meshes["wheel_FL"].T)
     T_mesh_center = T_mesh.inv() * T_wheel
@@ -89,10 +100,10 @@ def pick_and_place(env, robot, meshes, gui=None, collision=False):
     T_place = T_target_mesh * T_ee_wheel.inv()
     T_align = SE3.Trans(0.1, 0, 0) * T_place
 
-    # ============================================================
+    # ==============================================================================================
     # ALIGNMENT MOVEMENT
     # T_lift -> T_align
-    # ============================================================
+    # ==============================================================================================
 
     if collision:
         print(">> Collision avoidance enabled")
@@ -164,10 +175,10 @@ def pick_and_place(env, robot, meshes, gui=None, collision=False):
 
         print(">> Wheel aligned successfully (Direct)")
 
-    # ============================================================
+    # ==============================================================================================
     # FINAL WHEEL PLACEMENT
     # T_align -> T_place
-    # ============================================================
+    # ==============================================================================================
 
     if move_robot(
         robot,

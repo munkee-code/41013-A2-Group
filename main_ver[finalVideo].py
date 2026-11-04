@@ -102,7 +102,8 @@ def main():
 				camera_target = robot_AR4.base.t + np.array([0, 0, 0.35])
 				camera_position = robot_AR4.base.t + np.array([1.2, 1.0, 1.2])
 				env.set_camera_pose(camera_position, camera_target)
-				
+
+				# execute pick and place operation with AR4-MK5
 				placement_success = pick_and_place(
 					env=env, 
 					robot=robot_AR4, 
@@ -110,11 +111,15 @@ def main():
 					gui=gui
 				)
 
+				# check if pick and place operation was successful
 				if placement_success:
 					print(">> Pick and place operation successful")
 				else:
 					print(">> Pick and place operation failed")
 
+				#===================================================================================
+				# Inspection and movement of the assembled car
+				#===================================================================================
 				# Move assembled car to worker
 				car_parts = ["chassis", "wheel_FL"]
 				shift = RS003.base.t - robot_AR4.base.t
