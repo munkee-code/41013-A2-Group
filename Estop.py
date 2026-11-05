@@ -11,12 +11,13 @@ class Estop:
         Mega.samplingOn()
         time.sleep(0.02)
 
+        #Estop power pin
         epower = Mega.get_pin('d:22:o')
         epower.write(1) 
         time.sleep(0.02)
 
         #Estop read pin
-        eread = Mega.get_pin('d:7:i') 
+        eread = Mega.get_pin('d:7:i')
         eread.enable_reporting()
         time.sleep(0.02)
 
@@ -31,7 +32,7 @@ class Estop:
                 #Wait to debounce button
                 time.sleep(0.05)
         
-                # Check state again
+                #Check state again
                 NewState = eread.value
 
                 #If both checks match and are different to current state, change the state
@@ -52,6 +53,4 @@ class Estop:
                 time.sleep(0.13)
         
         except KeyboardInterrupt:
-            print("\nExiting and shutting down power loop...")
-            epower.write(0)
             Mega.exit()

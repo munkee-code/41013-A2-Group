@@ -100,100 +100,91 @@ def MOVECRX(GOAL,rob,env):
 
 def CRXRMRC(GOAL, rob, env, steps):
 
-
+    #Variables
     incriment = 0.05
+    JointVelMax = 0.5
+    damping = 0.03
 
-    #Max joint velocity
-    max_qdot = 0.25
-
-    #Damping for dls
-    damping = 0.05
-
-    
-    Kp = 1.0
-
-    # Starting and goal poses
+    #Start and finsih poses
     Start = rob.fkine(rob.q)
-
     End = (
         SE3.Trans(*GOAL[:3])
         * SE3.RPY(GOAL[3:6], order='xyz')
     )
 
-    # Trajectory progress
+    #Create Trajectory and matrix to hold poses
     Traj = trapezoidal(0, 1, steps).q
+    
+    Joints = np.zeros((steps, 6))
+    Joints[0, :] = np.array(rob.q, dtype=float)
 
-    q_matrix = np.zeros((steps, 6))
-    q_matrix[0, :] = np.array(rob.q, dtype=float)
-
-    # Translation endpoints
+    #Translation points
     Tstart = Start.t
     Tend = End.t
 
-    # Orientation endpoints
+    #Orientation points
     Rstart = SO3(Start.R)
     Rend = SO3(End.R)
 
+
     for i in range(steps - 1):
 
-        # Trajectory progress at current and next timestep
-        s_now = Traj[i]
-        s_next = Traj[i + 1]
+        #Trajectory progress at current and next timestep
+        Now = Traj[i]
+        Next = Traj[i + 1]
 
-        # Desired positions
-        T_now = (1 - s_now) * Tstart + s_now * Tend
-        T_next = (1 - s_next) * Tstart + s_next * Tend
+        #Linear interp translation
+        Tnow = (1 - Now) * Tstart + Now * Tend
+        Tnext = (1 - Next) * Tstart + Next * Tend
 
-        # Desired orientations at consecutive timesteps
-        R_now = Rstart.interp(Rend, s_now)
-        R_next = Rstart.interp(Rend, s_next)
+        #INterpolate rotation
+        Rnow = Rstart.interp(Rend, Now)
+        Rnext = Rstart.interp(Rend, Next)
 
-        # Actual end-effector pose
-        T_current = rob.fkine(q_matrix[i, :])
+        #linear velocity
+        LinVelocity = (Tnext - Tnow) / incriment
 
-        # Desired linear velocity
-        v_desired = (T_next - T_now) / incriment
+        #rotational velocity
+        RotationChange = Rnext * Rnow.inv()
+        theta, axis = RotationChange.angvec()
+        RotVelocity = axis * theta / incriment
+        
+        #Actual pose
+        CurrentPose = rob.fkine(Joints[i, :])
 
-        # Desired angular velocity between consecutive orientations
-        R_change = R_next * R_now.inv()
-        theta, axis = R_change.angvec()
-        w_desired = axis * theta / incriment
+        #Translation error
+        TError = Tnext - CurrentPose.t
 
-        # Position error: desired next position minus actual
-        e_position = T_next - T_current.t
+        #Rotation error
+        RError = Rnext * SO3(CurrentPose.R).inv()
+        thetaError, axisError = RError.angvec()
+        ErrorVector = axisError * thetaError
 
-        # Orientation error: desired next orientation minus actual
-        R_error = R_next * SO3(T_current.R).inv()
-        theta_e, axis_e = R_error.angvec()
-        e_orientation = axis_e * theta_e
+        #Compensate for error
+        CompLinVel = LinVelocity + TError
+        CompRotVel = RotVelocity + ErrorVector
 
-        # Corrected Cartesian velocity
-        v_cmd = v_desired + Kp * e_position
-        w_cmd = w_desired + Kp * e_orientation
+        Velocities = np.r_[CompLinVel, CompRotVel]
+        J = rob.jacob0(Joints[i, :])
 
-        xdot = np.r_[v_cmd, w_cmd]
-
-        # Full 6x6 Jacobian
-        J = rob.jacob0(q_matrix[i, :])
-
-        # Damped least-squares inverse
-        q_dot = J.T @ np.linalg.solve(
-            J @ J.T + damping**2 * np.eye(6),
-            xdot
+        #DLS
+        JointVel = J.T * np.linalg.solve(
+            J * J.T + damping**2 * np.eye(6),
+            Velocities
         )
 
-        # Limit joint velocities
-        q_dot = np.clip(
-            q_dot, -max_qdot, max_qdot
+        #Limit joint velocities
+        JointVel = np.clip(
+            JointVel, -JointVelMax, JointVelMax
         )
 
-        # Update joint angles
-        q_matrix[i + 1, :] = (
-            q_matrix[i, :]
-            + incriment * q_dot
+        #Update joint angles
+        Joints[i + 1, :] = (
+            Joints[i, :]
+            + incriment * JointVel
         )
 
-        rob.q = q_matrix[i + 1, :]
+        rob.q = Joints[i + 1, :]
         env.step(incriment)
 
-    return q_matrix
+    return

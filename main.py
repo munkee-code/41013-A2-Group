@@ -24,7 +24,7 @@ def main():
 	#Start Swift Env
 	env = swift.Swift()
 	env.launch(realtime=True)
-	PORT = 'COM3'
+	PORT = 'COM7'
 	state_system = 0
 	running = True
 	
