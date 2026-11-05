@@ -102,7 +102,7 @@ def CRXRMRC(GOAL, rob, env, steps):
 
     #Variables
     incriment = 0.05
-    JointVelMax = 0.5
+    JvelMax = 0.5
     damping = 0.03
 
     #Start and finsih poses
@@ -168,14 +168,14 @@ def CRXRMRC(GOAL, rob, env, steps):
         J = rob.jacob0(Joints[i, :])
 
         #DLS
-        JointVel = J.T * np.linalg.solve(
-            J * J.T + damping**2 * np.eye(6),
+        JointVel = J.T @ np.linalg.solve(
+            J @ J.T + damping**2 * np.eye(6),
             Velocities
         )
 
         #Limit joint velocities
         JointVel = np.clip(
-            JointVel, -JointVelMax, JointVelMax
+            JointVel, -JvelMax, JvelMax
         )
 
         #Update joint angles
